@@ -1,3 +1,11 @@
+```
+                                                                                                                                                                                 
+ __                      __     __       ___     __   ___  __  ___     __   __        __  ___    __   ___  __  
+|__) |     /\  \ / |  | |__) | / _` |__|  |     |__) |__  /__`  |     |__) |__)  /\  /  `  |  | /  ` |__  /__` 
+|    |___ /~~\  |  |/\| |  \ | \__> |  |  |     |__) |___ .__/  |     |    |  \ /~~\ \__,  |  | \__, |___ .__/ 
+                                                                                                                          
+```
+                                                                              
 # Playwright Best Practices Skill
 
 A skill that gives the AI specialized guidance for writing, debugging, and maintaining **Playwright** tests in **TypeScript**. Use it in any repo where you work with Playwright so the assistant follows best practices for E2E, component, API, and visual regression testing.
@@ -7,8 +15,6 @@ A skill that gives the AI specialized guidance for writing, debugging, and maint
 ```bash
 npx skills add https://github.com/currents-dev/playwright-best-practices-skill
 ```
-
-After adding, the AI will use it when your questions or tasks involve writing Playwright tests, debugging failures, fixing flaky tests, setting up CI/CD, implementing POM, or similar Playwright work.
 
 ## What This Skill Covers
 
