@@ -5,7 +5,7 @@ A skill that gives the AI specialized guidance for writing, debugging, and maint
 ## Installation
 
 ```bash
-npx skills add https://github.com/currents-dev/playwright-best-practices-skill --skill playwright-best-practices
+npx skills add https://github.com/currents-dev/playwright-best-practices-skill
 ```
 
 After adding, the AI will use it when your questions or tasks involve writing Playwright tests, debugging failures, fixing flaky tests, setting up CI/CD, implementing POM, or similar Playwright work.
