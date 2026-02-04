@@ -59,17 +59,17 @@ Consult these references based on what you're doing:
 
 **When to use**: Test failures, element not found, timeouts, unexpected behavior
 
-| Activity                                          | Reference Files                                                                                                                                       |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Debugging test failures**                       | [debugging.md](references/debugging.md), [assertions-waiting.md](references/assertions-waiting.md)                                                    |
-| **Fixing flaky tests**                            | [debugging.md](references/debugging.md), [assertions-waiting.md](references/assertions-waiting.md), [fixtures-hooks.md](references/fixtures-hooks.md) |
-| **Debugging flaky parallel runs**                 | [debugging.md](references/debugging.md), [performance.md](references/performance.md), [fixtures-hooks.md](references/fixtures-hooks.md)               |
-| **Ensuring test isolation / avoiding state leak** | [fixtures-hooks.md](references/fixtures-hooks.md), [performance.md](references/performance.md), [debugging.md](references/debugging.md)               |
-| **Fixing selector issues**                        | [locators.md](references/locators.md), [debugging.md](references/debugging.md)                                                                        |
-| **Investigating timeout issues**                  | [assertions-waiting.md](references/assertions-waiting.md), [debugging.md](references/debugging.md)                                                    |
-| **Using trace viewer**                            | [debugging.md](references/debugging.md)                                                                                                               |
-| **Debugging race conditions**                     | [debugging.md](references/debugging.md), [assertions-waiting.md](references/assertions-waiting.md)                                                    |
-| **Debugging console/JS errors**                   | [console-errors.md](references/console-errors.md), [debugging.md](references/debugging.md)                                                            |
+| Activity                                          | Reference Files                                                                                                                                 |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Debugging test failures**                       | [debugging.md](references/debugging.md), [assertions-waiting.md](references/assertions-waiting.md)                                              |
+| **Fixing flaky tests**                            | [flaky-tests.md](references/flaky-tests.md), [debugging.md](references/debugging.md), [assertions-waiting.md](references/assertions-waiting.md) |
+| **Debugging flaky parallel runs**                 | [flaky-tests.md](references/flaky-tests.md), [performance.md](references/performance.md), [fixtures-hooks.md](references/fixtures-hooks.md)     |
+| **Ensuring test isolation / avoiding state leak** | [flaky-tests.md](references/flaky-tests.md), [fixtures-hooks.md](references/fixtures-hooks.md), [performance.md](references/performance.md)     |
+| **Fixing selector issues**                        | [locators.md](references/locators.md), [debugging.md](references/debugging.md)                                                                  |
+| **Investigating timeout issues**                  | [assertions-waiting.md](references/assertions-waiting.md), [debugging.md](references/debugging.md)                                              |
+| **Using trace viewer**                            | [debugging.md](references/debugging.md)                                                                                                         |
+| **Debugging race conditions**                     | [flaky-tests.md](references/flaky-tests.md), [debugging.md](references/debugging.md), [assertions-waiting.md](references/assertions-waiting.md) |
+| **Debugging console/JS errors**                   | [console-errors.md](references/console-errors.md), [debugging.md](references/debugging.md)                                                      |
 
 ### Error & Edge Case Testing
 
@@ -171,11 +171,12 @@ What are you doing?
 │  └─ Performance/Web Vitals → performance-testing.md
 │
 ├─ Test is failing/flaky?
+│  ├─ Flaky test investigation → flaky-tests.md
 │  ├─ Element not found → locators.md, debugging.md
 │  ├─ Timeout issues → assertions-waiting.md, debugging.md
-│  ├─ Race conditions → debugging.md, assertions-waiting.md
-│  ├─ Flaky only with multiple workers → debugging.md, performance.md, fixtures-hooks.md
-│  ├─ State leak / isolation → fixtures-hooks.md, performance.md
+│  ├─ Race conditions → flaky-tests.md, debugging.md
+│  ├─ Flaky only with multiple workers → flaky-tests.md, performance.md
+│  ├─ State leak / isolation → flaky-tests.md, fixtures-hooks.md
 │  ├─ Console/JS errors → console-errors.md, debugging.md
 │  └─ General debugging → debugging.md
 │

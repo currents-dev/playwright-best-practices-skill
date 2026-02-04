@@ -67,16 +67,18 @@ You don't have to mention "skill" or "Playwright best practices"; describe your 
 
 ### Infrastructure & Advanced
 
-| Topic            | Reference                  | Use for                                 |
-| ---------------- | -------------------------- | --------------------------------------- |
-| Debugging        | `debugging.md`             | Trace viewer, flakiness, common issues  |
-| CI/CD            | `ci-cd.md`                 | Pipelines, sharding, Docker             |
-| Performance      | `performance.md`           | Parallel runs, optimization             |
-| Global setup     | `global-setup.md`          | globalSetup/Teardown, DB migrations     |
-| Projects         | `projects-dependencies.md` | Project config, dependencies, filtering |
-| Network advanced | `network-advanced.md`      | GraphQL, HAR, request modification      |
-| Third-party      | `third-party.md`           | OAuth, payments, email/SMS mocking      |
-| Console errors   | `console-errors.md`        | Capturing and failing on JS errors      |
+| Topic            | Reference                  | Use for                                  |
+| ---------------- | -------------------------- | ---------------------------------------- |
+| Flaky tests      | `flaky-tests.md`           | Detection, diagnosis, fixing, quarantine |
+| Debugging        | `debugging.md`             | Trace viewer, inspector, common issues   |
+| CI/CD            | `ci-cd.md`                 | Pipelines, sharding, Docker              |
+| Performance      | `performance.md`           | Parallel runs, optimization              |
+| Global setup     | `global-setup.md`          | globalSetup/Teardown, DB migrations      |
+| Projects         | `projects-dependencies.md` | Project config, dependencies, filtering  |
+| Reporters        | `reporters.md`             | Custom reporters, Slack/Teams, analytics |
+| Network advanced | `network-advanced.md`      | GraphQL, HAR, request modification       |
+| Third-party      | `third-party.md`           | OAuth, payments, email/SMS mocking       |
+| Console errors   | `console-errors.md`        | Capturing and failing on JS errors       |
 
 The skill's `SKILL.md` maps your current activity to these references so the right content is used in context.
 

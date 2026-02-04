@@ -4,10 +4,13 @@
 
 1. [Debug Tools](#debug-tools)
 2. [Trace Viewer](#trace-viewer)
-3. [Debugging Flaky Tests](#debugging-flaky-tests)
-4. [Common Issues](#common-issues)
-5. [Logging](#logging)
-6. [VS Code Integration](#vs-code-integration)
+3. [Identifying Flaky Tests](#identifying-flaky-tests)
+4. [Debugging Network Issues](#debugging-network-issues)
+5. [Debugging in CI](#debugging-in-ci)
+6. [Debugging Authentication](#debugging-authentication)
+7. [Debugging Screenshots](#debugging-screenshots)
+8. [Common Issues](#common-issues)
+9. [Logging](#logging)
 
 ## Debug Tools
 
@@ -113,129 +116,214 @@ test("manual trace", async ({ page, context }) => {
 });
 ```
 
-## Debugging Flaky Tests
+## Identifying Flaky Tests
 
-### Flaky Test Investigation Checklist
-
-Copy this checklist to track your debugging progress:
-
-```
-Flaky Test Investigation:
-- [ ] Step 1: Reproduce flakiness (`--repeat-each=10`)
-- [ ] Step 2: Enable full tracing (`trace: 'on'`)
-- [ ] Step 3: Check for race conditions (missing awaits)
-- [ ] Step 4: Verify locator stability (no dynamic IDs)
-- [ ] Step 5: Review network dependencies (mock or wait)
-- [ ] Step 6: Ensure test isolation (no shared state)
-- [ ] Step 7: If parallel-only flakiness, isolate per worker
-- [ ] Step 8: Confirm fix (run 10+ times)
-```
-
-### Identify Flaky Tests
+### Quick Detection
 
 ```bash
-# Run test multiple times
-npx playwright test --repeat-each=10
+# Confirm flakiness by running multiple times
+npx playwright test tests/suspect.spec.ts --repeat-each=10
 
-# Run until failure
+# Find first failure
 npx playwright test --repeat-each=100 --max-failures=1
+
+# Check if parallel-specific (passes with single worker?)
+npx playwright test --workers=1
 ```
 
-### Common Causes & Fixes
+### Is It Flaky?
 
-#### Race Conditions
+| Behavior                               | Likely Cause                  | Next Step                                  |
+| -------------------------------------- | ----------------------------- | ------------------------------------------ |
+| Fails sometimes, passes other times    | Flaky - timing/race condition | See [flaky-tests.md](flaky-tests.md)       |
+| Fails only with multiple workers       | Flaky - parallelism/isolation | See [flaky-tests.md](flaky-tests.md)       |
+| Fails only in CI                       | Environment difference        | See [CI Debugging](#debugging-in-ci) below |
+| Always fails                           | Bug in test or app            | Debug with tools above                     |
+| Always passes locally, always fails CI | CI-specific issue             | See [ci-cd.md](ci-cd.md)                   |
 
-```typescript
-// Bad: Element may not exist yet
-await page.click(".dynamic-button");
+For comprehensive flaky test investigation, root cause analysis, and fixing strategies, see **[flaky-tests.md](flaky-tests.md)**.
 
-// Good: Wait for element
-await page.getByRole("button", { name: "Submit" }).click();
-```
+## Debugging Network Issues
 
-#### Animation Timing
-
-```typescript
-// Bad: Animation may still be running
-await page.click(".animated-element");
-
-// Good: Wait for animation
-await page.getByRole("dialog").waitFor({ state: "visible" });
-await expect(page.getByRole("dialog")).toBeVisible();
-```
-
-#### Network Timing
+### Monitor All Requests
 
 ```typescript
-// Bad: Data may not be loaded
-await page.goto("/dashboard");
-expect(await page.textContent(".user-count")).toBe("100");
+test("debug network", async ({ page }) => {
+  const requests: string[] = [];
+  const failures: string[] = [];
 
-// Good: Wait for API response
-await page.goto("/dashboard");
-await page.waitForResponse("**/api/users");
-await expect(page.getByTestId("user-count")).toHaveText("100");
-```
+  page.on("request", (req) => requests.push(`>> ${req.method()} ${req.url()}`));
+  page.on("requestfinished", (req) => {
+    const resp = req.response();
+    requests.push(`<< ${resp?.status()} ${req.url()}`);
+  });
+  page.on("requestfailed", (req) => {
+    failures.push(`FAILED: ${req.url()} - ${req.failure()?.errorText}`);
+  });
 
-#### Test Isolation
+  await page.goto("/dashboard");
 
-```typescript
-// Bad: Tests share state
-test("add item", async ({ page }) => {
-  await page.goto("/items");
-  await page.click("text=Add Item");
-  expect(await page.locator(".item").count()).toBe(1);
-});
-
-test("check items", async ({ page }) => {
-  await page.goto("/items");
-  // Fails if previous test ran first!
-  expect(await page.locator(".item").count()).toBe(0);
-});
-
-// Good: Reset state in each test
-test.beforeEach(async ({ page }) => {
-  await page.request.delete("/api/items/reset");
+  // Log summary
+  console.log("Requests:", requests.length);
+  if (failures.length) console.log("Failures:", failures);
 });
 ```
 
-#### Flaky only when running in parallel
+### Wait for Specific API Response
 
-If a test passes with `--workers=1` but fails with multiple workers, the cause is usually **shared state** or **backend/DB state not isolated per worker**.
+```typescript
+test("wait for API", async ({ page }) => {
+  // Start waiting BEFORE triggering the request
+  const responsePromise = page.waitForResponse(
+    (resp) => resp.url().includes("/api/data") && resp.status() === 200,
+  );
 
-- **Reproduce**: `npx playwright test --repeat-each=10` (default workers), or `npx playwright test --repeat-each=100 --max-failures=1`.
-- **Confirm**: Run the same test(s) with `npx playwright test --workers=1`. If it stops failing, the issue is parallel-specific.
-- **Common causes**: Shared page/context in `beforeAll`; global or module-level variables; backend or DB data (e.g. same user ID) used by tests in different workers.
-- **Fix**: Use a fresh `page` per test (default); avoid shared mutable state; isolate test data per worker using a worker-scoped fixture and `testInfo.workerIndex` (see [fixtures-hooks.md](fixtures-hooks.md)). See [performance.md](performance.md) for isolation and parallel execution.
+  await page.getByRole("button", { name: "Load" }).click();
+  const response = await responsePromise;
 
-### Retry Configuration
+  // Inspect response
+  console.log("Status:", response.status());
+  console.log("Body:", await response.json());
+});
+```
+
+### Debug Slow Requests
+
+```typescript
+test("find slow requests", async ({ page }) => {
+  page.on("requestfinished", (request) => {
+    const timing = request.timing();
+    const total = timing.responseEnd - timing.requestStart;
+    if (total > 1000) {
+      console.log(`SLOW (${total}ms): ${request.url()}`);
+    }
+  });
+
+  await page.goto("/");
+});
+```
+
+## Debugging in CI
+
+### Simulate CI Locally
+
+```bash
+# Run in headless mode like CI
+CI=true npx playwright test --headed=false
+
+# Match CI browser versions
+npx playwright install --with-deps
+
+# Run in Docker (same as CI)
+docker run --rm -v $(pwd):/work -w /work \
+  mcr.microsoft.com/playwright:v1.40.0-jammy \
+  npx playwright test
+```
+
+### CI-Specific Configuration
 
 ```typescript
 // playwright.config.ts
 export default defineConfig({
-  retries: process.env.CI ? 2 : 0,
+  // More artifacts in CI for debugging
+  use: {
+    trace: process.env.CI ? "on-first-retry" : "off",
+    video: process.env.CI ? "retain-on-failure" : "off",
+    screenshot: process.env.CI ? "only-on-failure" : "off",
+  },
 
-  // Per-project retries
-  projects: [
-    {
-      name: "stable",
-      retries: 0,
-    },
-    {
-      name: "flaky",
-      retries: 3,
-    },
-  ],
+  // More retries in CI (but investigate failures!)
+  retries: process.env.CI ? 2 : 0,
 });
 ```
 
+### Debug CI Environment
+
 ```typescript
-// Per-test retry
-test("flaky test", async ({ page }) => {
-  test
-    .info()
-    .annotations.push({ type: "fixme", description: "Investigate flakiness" });
-  // ...
+test("CI environment check", async ({ page }, testInfo) => {
+  console.log("CI:", process.env.CI);
+  console.log("Project:", testInfo.project.name);
+  console.log("Worker:", testInfo.workerIndex);
+  console.log("Retry:", testInfo.retry);
+  console.log("Base URL:", testInfo.project.use.baseURL);
+
+  // Check viewport
+  const viewport = page.viewportSize();
+  console.log("Viewport:", viewport);
+});
+```
+
+## Debugging Authentication
+
+```typescript
+test("debug auth", async ({ page, context }) => {
+  // Inspect current storage state
+  const storage = await context.storageState();
+  console.log(
+    "Cookies:",
+    storage.cookies.map((c) => c.name),
+  );
+
+  // Check if auth cookies are present
+  const cookies = await context.cookies();
+  const authCookie = cookies.find((c) => c.name.includes("session"));
+  console.log("Auth cookie:", authCookie ? "present" : "MISSING");
+
+  await page.goto("/protected");
+
+  // Check if redirected to login (auth failed)
+  if (page.url().includes("/login")) {
+    console.error("Auth failed - redirected to login");
+    // Save state for inspection
+    await context.storageState({ path: "debug-auth.json" });
+  }
+});
+```
+
+## Debugging Screenshots
+
+### Compare Visual State
+
+```typescript
+test("visual debug", async ({ page }, testInfo) => {
+  await page.goto("/");
+
+  // Screenshot before action
+  await page.screenshot({
+    path: testInfo.outputPath("before.png"),
+    fullPage: true,
+  });
+
+  await page.getByRole("button", { name: "Open Menu" }).click();
+
+  // Screenshot after action
+  await page.screenshot({
+    path: testInfo.outputPath("after.png"),
+    fullPage: true,
+  });
+
+  // Attach to report
+  await testInfo.attach("before", {
+    path: testInfo.outputPath("before.png"),
+    contentType: "image/png",
+  });
+});
+```
+
+### Screenshot Specific Element
+
+```typescript
+test("element screenshot", async ({ page }) => {
+  await page.goto("/");
+
+  const element = page.getByTestId("problem-area");
+
+  // Screenshot just the element
+  await element.screenshot({ path: "element-debug.png" });
+
+  // Highlight element in full page screenshot
+  await element.evaluate((el) => (el.style.border = "3px solid red"));
+  await page.screenshot({ path: "highlighted.png" });
 });
 ```
 
@@ -311,14 +399,12 @@ console.log(await frame.getByRole("button").count());
 
 ## Logging
 
-### Console Logging
+### Capture Browser Console
 
 ```typescript
 test("with logging", async ({ page }) => {
-  // Capture browser console
   page.on("console", (msg) => console.log("Browser:", msg.text()));
   page.on("pageerror", (error) => console.log("Page error:", error.message));
-
   await page.goto("/");
 });
 ```
@@ -327,40 +413,21 @@ test("with logging", async ({ page }) => {
 
 ```typescript
 test("with attachments", async ({ page }, testInfo) => {
-  await page.goto("/");
-
-  // Attach screenshot
+  // Attach screenshot to report
   const screenshot = await page.screenshot();
   await testInfo.attach("screenshot", {
     body: screenshot,
     contentType: "image/png",
   });
 
-  // Attach text
+  // Attach logs or data
   await testInfo.attach("logs", {
     body: "Custom log data",
     contentType: "text/plain",
   });
 
-  // Attach file
-  await testInfo.attach("data", {
-    path: "./test-data.json",
-    contentType: "application/json",
-  });
-});
-```
-
-### Test Info
-
-```typescript
-test("info example", async ({ page }, testInfo) => {
-  console.log("Test title:", testInfo.title);
-  console.log("Test file:", testInfo.file);
-  console.log("Retry:", testInfo.retry);
-  console.log("Project:", testInfo.project.name);
-
-  // Custom output directory
-  const outputPath = testInfo.outputPath("custom-file.txt");
+  // Use testInfo for output paths
+  const outputPath = testInfo.outputPath("debug-file.json");
 });
 ```
 
@@ -368,26 +435,26 @@ test("info example", async ({ page }, testInfo) => {
 
 ### By Symptom
 
-| Symptom                                       | Common Causes                                                | Quick Fixes                                                         | Reference                                                                              |
-| --------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| **Element not found**                         | Wrong selector, element not visible, in iframe, timing issue | Check locator with Inspector, wait for visibility, use frameLocator | [locators.md](locators.md), [assertions-waiting.md](assertions-waiting.md)             |
-| **Timeout errors**                            | Slow network, heavy page load, waiting for wrong condition   | Increase timeout, wait for specific response, check network tab     | [assertions-waiting.md](assertions-waiting.md)                                         |
-| **Flaky tests**                               | Race conditions, shared state, timing dependencies           | Use auto-waiting, isolate tests, fix state management               | [assertions-waiting.md](assertions-waiting.md), [fixtures-hooks.md](fixtures-hooks.md) |
-| **Tests pass locally, fail in CI**            | Environment differences, missing dependencies, timing        | Check CI logs, verify environment vars, add retries                 | [ci-cd.md](ci-cd.md)                                                                   |
-| **Slow test execution**                       | Not parallelized, heavy network calls, unnecessary waits     | Enable parallelization, mock APIs, optimize waits                   | [performance.md](performance.md)                                                       |
-| **Selector works in browser but not in test** | Element not attached, wrong context, dynamic content         | Use auto-waiting, check iframe, verify element state                | [locators.md](locators.md)                                                             |
-| **Test fails on retry**                       | Non-deterministic data, external dependencies                | Use test data fixtures, mock external services                      | [fixtures-hooks.md](fixtures-hooks.md)                                                 |
+| Symptom                                       | Common Causes                                                | Quick Fixes                                                         | Reference                                                                  |
+| --------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **Element not found**                         | Wrong selector, element not visible, in iframe, timing issue | Check locator with Inspector, wait for visibility, use frameLocator | [locators.md](locators.md), [assertions-waiting.md](assertions-waiting.md) |
+| **Timeout errors**                            | Slow network, heavy page load, waiting for wrong condition   | Increase timeout, wait for specific response, check network tab     | [assertions-waiting.md](assertions-waiting.md)                             |
+| **Flaky tests**                               | Race conditions, shared state, timing dependencies           | See comprehensive flaky test guide                                  | [flaky-tests.md](flaky-tests.md)                                           |
+| **Tests pass locally, fail in CI**            | Environment differences, missing dependencies, timing        | Simulate CI locally, check CI logs, verify environment vars         | [ci-cd.md](ci-cd.md), [flaky-tests.md](flaky-tests.md)                     |
+| **Slow test execution**                       | Not parallelized, heavy network calls, unnecessary waits     | Enable parallelization, mock APIs, optimize waits                   | [performance.md](performance.md)                                           |
+| **Selector works in browser but not in test** | Element not attached, wrong context, dynamic content         | Use auto-waiting, check iframe, verify element state                | [locators.md](locators.md)                                                 |
+| **Test fails on retry**                       | Non-deterministic data, external dependencies                | Use test data fixtures, mock external services                      | [fixtures-hooks.md](fixtures-hooks.md)                                     |
 
 ### Step-by-Step Debugging Process
 
 1. **Reproduce the issue**
 
    ```bash
-   # Run test multiple times to confirm flakiness
-   npx playwright test --repeat-each=10
+   # Run with trace enabled
+   npx playwright test tests/failing.spec.ts --trace on
 
-   # Run with trace
-   npx playwright test --trace on
+   # If intermittent, run multiple times
+   npx playwright test --repeat-each=10
    ```
 
 2. **Inspect the failure**
@@ -396,8 +463,11 @@ test("info example", async ({ page }, testInfo) => {
    # View trace
    npx playwright show-trace test-results/path-to-trace.zip
 
-   # Run in headed mode
+   # Run in headed mode to watch
    npx playwright test --headed
+
+   # Use inspector for step-by-step
+   PWDEBUG=1 npx playwright test
    ```
 
 3. **Isolate the problem**
@@ -409,91 +479,26 @@ test("info example", async ({ page }, testInfo) => {
    // Log element state
    console.log("Element count:", await page.getByRole("button").count());
    console.log("Element visible:", await page.getByRole("button").isVisible());
+
+   // Take screenshot at failure point
+   await page.screenshot({ path: "debug.png" });
    ```
 
 4. **Check related areas**
-   - Network requests: Check if API calls are completing
-   - Timing: Verify auto-waiting is working
-   - State: Ensure test isolation
-   - Environment: Compare local vs CI
+   - Network requests: Are API calls completing? (see [Debugging Network Issues](#debugging-network-issues))
+   - Timing: Is auto-waiting working correctly?
+   - State: Is the test isolated? (see [flaky-tests.md](flaky-tests.md))
+   - Environment: Does it work locally but fail in CI? (see [Debugging in CI](#debugging-in-ci))
 
 5. **Apply fix and verify**
    - Fix the root cause (not just symptoms)
-   - Run multiple times to confirm stability
+   - Run multiple times to confirm stability: `--repeat-each=10`
    - Check related tests aren't affected
-
-## Common Scenarios
-
-### Scenario 1: Element Appears After Delay
-
-**Problem**: Element exists in DOM but test fails with "element not found"
-
-```typescript
-// Bad: No waiting
-await page.getByRole("button").click(); // Fails if button not ready
-
-// Good: Auto-waiting handles this
-await page.getByRole("button").click(); // Waits automatically
-
-// Better: Explicit wait for complex cases
-await page.getByRole("button").waitFor({ state: "visible" });
-await page.getByRole("button").click();
-```
-
-### Scenario 2: Test Fails Intermittently
-
-**Problem**: Test passes sometimes, fails other times
-
-```typescript
-// Bad: Race condition
-test("add item", async ({ page }) => {
-  await page.goto("/items");
-  await page.click("button"); // May click before page ready
-  expect(await page.locator(".item").count()).toBe(1);
-});
-
-// Good: Wait for specific condition
-test("add item", async ({ page }) => {
-  await page.goto("/items");
-  await page.getByRole("button", { name: "Add Item" }).click();
-  await expect(page.locator(".item")).toHaveCount(1);
-});
-```
-
-### Scenario 3: CI Failures Only
-
-**Problem**: Tests pass locally but fail in CI
-
-```typescript
-// Check environment differences
-test("environment check", async ({ page }) => {
-  console.log("Base URL:", process.env.BASE_URL);
-  console.log("CI:", process.env.CI);
-
-  // Add CI-specific handling
-  const timeout = process.env.CI ? 60000 : 30000;
-  test.setTimeout(timeout);
-});
-```
-
-### Scenario 4: Multiple Elements Match
-
-**Problem**: Selector matches multiple elements
-
-```typescript
-// Bad: Ambiguous selector
-await page.getByRole("button").click(); // Which button?
-
-// Good: More specific
-await page.getByRole("button", { name: "Submit" }).click();
-
-// Or filter
-await page.getByRole("button").filter({ hasText: "Submit" }).first().click();
-```
 
 ## Related References
 
+- **Flaky tests**: See [flaky-tests.md](flaky-tests.md) for comprehensive flaky test guide
 - **Locator issues**: See [locators.md](locators.md) for selector strategies
 - **Waiting problems**: See [assertions-waiting.md](assertions-waiting.md) for waiting patterns
-- **Flaky tests**: See [fixtures-hooks.md](fixtures-hooks.md) for test isolation
+- **Test isolation**: See [fixtures-hooks.md](fixtures-hooks.md) for fixtures and isolation
 - **CI issues**: See [ci-cd.md](ci-cd.md) for CI configuration
