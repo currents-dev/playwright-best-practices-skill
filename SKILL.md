@@ -1,6 +1,6 @@
 ---
 name: playwright-best-practices
-description: Provides comprehensive guidance for writing, debugging, and maintaining Playwright tests in TypeScript. Use when writing Playwright tests, fixing flaky tests, debugging failures, implementing Page Object Model, configuring CI/CD, optimizing performance, mocking APIs, handling authentication or OAuth, testing accessibility (axe-core), file uploads/downloads, date/time mocking, WebSockets, geolocation, permissions, multi-tab/popup flows, mobile/responsive layouts, touch gestures, GraphQL, error handling, offline mode, multi-user collaboration, custom reporters, third-party services (payments, email verification), console error monitoring, global setup/teardown, test annotations (skip, fixme, slow), project dependencies, security testing (XSS, CSRF, auth), or performance budgets (Web Vitals, Lighthouse). Covers E2E, component, API, visual, accessibility, and security testing.
+description: Provides comprehensive guidance for writing, debugging, and maintaining Playwright tests in TypeScript. Use when writing Playwright tests, fixing flaky tests, debugging failures, implementing Page Object Model, configuring CI/CD, optimizing performance, mocking APIs, handling authentication or OAuth, testing accessibility (axe-core), file uploads/downloads, date/time mocking, WebSockets, geolocation, permissions, multi-tab/popup flows, mobile/responsive layouts, touch gestures, GraphQL, error handling, offline mode, multi-user collaboration, custom reporters, third-party services (payments, email verification), console error monitoring, global setup/teardown, test annotations (skip, fixme, slow), project dependencies, security testing (XSS, CSRF, auth), performance budgets (Web Vitals, Lighthouse), iframes, component testing, canvas/WebGL, service workers/PWA, test coverage, or i18n/localization testing. Covers E2E, component, API, visual, accessibility, security, and i18n testing.
 ---
 
 # Playwright Best Practices
@@ -18,9 +18,9 @@ Consult these references based on what you're doing:
 | Activity                            | Reference Files                                                                                                                                           |
 | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Writing E2E tests**               | [test-organization.md](references/test-organization.md), [locators.md](references/locators.md), [assertions-waiting.md](references/assertions-waiting.md) |
-| **Writing component tests**         | [test-organization.md](references/test-organization.md), [locators.md](references/locators.md)                                                            |
+| **Writing component tests**         | [component-testing.md](references/component-testing.md), [test-organization.md](references/test-organization.md)                                          |
 | **Writing API tests**               | [test-organization.md](references/test-organization.md), [assertions-waiting.md](references/assertions-waiting.md)                                        |
-| **Writing visual regression tests** | [test-organization.md](references/test-organization.md)                                                                                                   |
+| **Writing visual regression tests** | [test-organization.md](references/test-organization.md), [canvas-webgl.md](references/canvas-webgl.md)                                                    |
 | **Structuring test code with POM**  | [page-object-model.md](references/page-object-model.md), [test-organization.md](references/test-organization.md)                                          |
 | **Setting up test data/fixtures**   | [fixtures-hooks.md](references/fixtures-hooks.md), [test-data.md](references/test-data.md)                                                                |
 | **Handling authentication**         | [fixtures-hooks.md](references/fixtures-hooks.md), [third-party.md](references/third-party.md)                                                            |
@@ -29,6 +29,9 @@ Consult these references based on what you're doing:
 | **Testing accessibility**           | [accessibility.md](references/accessibility.md)                                                                                                           |
 | **Testing security (XSS, CSRF)**    | [security-testing.md](references/security-testing.md)                                                                                                     |
 | **Using test annotations**          | [annotations.md](references/annotations.md)                                                                                                               |
+| **Testing iframes**                 | [iframes.md](references/iframes.md)                                                                                                                       |
+| **Testing canvas/WebGL**            | [canvas-webgl.md](references/canvas-webgl.md)                                                                                                             |
+| **Internationalization (i18n)**     | [i18n.md](references/i18n.md)                                                                                                                             |
 
 ### Mobile & Responsive Testing
 
@@ -79,7 +82,8 @@ Consult these references based on what you're doing:
 | ------------------------------ | ------------------------------------------------------------------------------------------------------ |
 | **Error boundary testing**     | [error-testing.md](references/error-testing.md)                                                        |
 | **Network failure simulation** | [error-testing.md](references/error-testing.md), [network-advanced.md](references/network-advanced.md) |
-| **Offline mode testing**       | [error-testing.md](references/error-testing.md)                                                        |
+| **Offline mode testing**       | [error-testing.md](references/error-testing.md), [service-workers.md](references/service-workers.md)   |
+| **Service worker testing**     | [service-workers.md](references/service-workers.md)                                                    |
 | **Loading state testing**      | [error-testing.md](references/error-testing.md)                                                        |
 | **Form validation testing**    | [error-testing.md](references/error-testing.md)                                                        |
 
@@ -123,6 +127,7 @@ Consult these references based on what you're doing:
 | **Setting up test reporting**           | [ci-cd.md](references/ci-cd.md), [reporters.md](references/reporters.md)                                                 |
 | **Custom reporters & analytics**        | [reporters.md](references/reporters.md)                                                                                  |
 | **Slack/Teams notifications**           | [reporters.md](references/reporters.md)                                                                                  |
+| **Test coverage**                       | [test-coverage.md](references/test-coverage.md)                                                                          |
 
 ### Advanced Patterns
 
@@ -153,11 +158,12 @@ What are you doing?
 │
 ├─ Writing a new test?
 │  ├─ E2E test → test-organization.md, locators.md, assertions-waiting.md
-│  ├─ Component test → test-organization.md, locators.md
+│  ├─ Component test → component-testing.md
 │  ├─ API test → test-organization.md, assertions-waiting.md
-│  ├─ Visual test → test-organization.md
+│  ├─ Visual/canvas test → canvas-webgl.md, test-organization.md
 │  ├─ Accessibility test → accessibility.md
 │  ├─ Mobile/responsive test → mobile-testing.md
+│  ├─ i18n/locale test → i18n.md
 │  └─ Multi-user test → multi-user.md
 │
 ├─ Testing specific features?
@@ -167,6 +173,10 @@ What are you doing?
 │  ├─ Geolocation/permissions → browser-apis.md
 │  ├─ OAuth/popups → multi-context.md, third-party.md
 │  ├─ Payments/email/SMS → third-party.md
+│  ├─ iFrames → iframes.md
+│  ├─ Canvas/WebGL/charts → canvas-webgl.md
+│  ├─ Service workers/PWA → service-workers.md
+│  ├─ i18n/localization → i18n.md
 │  ├─ Security (XSS, CSRF) → security-testing.md
 │  └─ Performance/Web Vitals → performance-testing.md
 │
@@ -197,6 +207,7 @@ What are you doing?
 │  ├─ Global setup/teardown → global-setup.md
 │  ├─ Project dependencies → projects-dependencies.md
 │  ├─ Test performance → performance.md
+│  ├─ Test coverage → test-coverage.md
 │  ├─ Custom reporters → reporters.md
 │  ├─ Slack/Teams alerts → reporters.md
 │  └─ Project config → test-organization.md, projects-dependencies.md
