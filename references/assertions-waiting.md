@@ -175,14 +175,14 @@ await page.waitForURL(/\/dashboard/);
 
 // Wait for navigation after action
 await Promise.all([
-  page.waitForNavigation(),
+  page.waitForURL("**/dashboard"),
   page.click('a[href="/dashboard"]'),
 ]);
 
 // Or use Promise.all alternative
-const navigationPromise = page.waitForNavigation();
+const urlPromise = page.waitForURL("**/dashboard");
 await page.click("a");
-await navigationPromise;
+await urlPromise;
 ```
 
 ### Wait for Network

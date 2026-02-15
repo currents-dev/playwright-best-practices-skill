@@ -36,8 +36,21 @@ Features:
 # Run with visible browser
 npx playwright test --headed
 
-# Slow down execution
-npx playwright test --headed --slow-motion=500
+# Interactive debugging (headed, paused, step-through)
+npx playwright test --debug
+```
+
+You can also set `slowMo` to add an `N` ms delay per action, making test execution easier to follow while debugging.
+
+```typescript
+// playwright.config.ts
+export default defineConfig({
+  use: {
+    launchOptions: {
+      slowMo: 500,
+    },
+  },
+});
 ```
 
 ### UI Mode

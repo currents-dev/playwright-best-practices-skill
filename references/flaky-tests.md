@@ -188,8 +188,14 @@ await page.click("#load-data");
 await expect(page.locator(".data-row")).toHaveCount(10, { timeout: 10000 });
 
 // ✅ BETTER: Wait for network response, then assert
+const responsePromise = page.waitForResponse(
+  (r) =>
+    r.url().includes("/api/data") &&
+    r.request().method() === "GET" &&
+    r.ok(),
+);
 await page.click("#load-data");
-await page.waitForResponse((r) => r.url().includes("/api/data"));
+await responsePromise;
 await expect(page.locator(".data-row")).toHaveCount(10);
 ```
 
