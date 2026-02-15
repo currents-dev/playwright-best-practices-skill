@@ -30,7 +30,7 @@ test("example", async ({
 ```typescript
 test("API call", async ({ request }) => {
   const response = await request.get("/api/users");
-  expect(response.ok()).toBeTruthy();
+  await expect(response).toBeOK();
 
   const users = await response.json();
   expect(users).toHaveLength(5);

@@ -68,9 +68,9 @@ for (const deviceName of mobileDevices) {
 ### Tap
 
 ```typescript
-test("tap to interact", async ({ page }) => {
-  test.use({ hasTouch: true });
+test.use({ hasTouch: true });
 
+test("tap to interact", async ({ page }) => {
   await page.goto("/gallery");
 
   // Tap is like click but for touch devices
