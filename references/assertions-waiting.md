@@ -111,7 +111,7 @@ expect(object).toHaveProperty("key", "value");
 // Exceptions
 expect(() => fn()).toThrow();
 expect(() => fn()).toThrow("error message");
-expect(async () => await asyncFn()).rejects.toThrow();
+await expect(asyncFn()).rejects.toThrow();
 ```
 
 ## Soft Assertions
