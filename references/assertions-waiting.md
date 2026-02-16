@@ -179,7 +179,7 @@ await Promise.all([
   page.click('a[href="/dashboard"]'),
 ]);
 
-// Or use Promise.all alternative
+// Or without Promise.all
 const urlPromise = page.waitForURL("**/dashboard");
 await page.click("a");
 await urlPromise;
