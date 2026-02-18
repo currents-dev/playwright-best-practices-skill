@@ -366,6 +366,64 @@ test("login", async ({ page }) => {
   run: npm ci
 ```
 
+## Tag-Based Test Filtering
+
+### Run Specific Tags in CI
+
+```yaml
+# Run smoke tests on PR
+- name: Run smoke tests
+  run: npx playwright test --grep @smoke
+
+# Run full regression nightly
+- name: Run regression
+  run: npx playwright test --grep @regression
+
+# Exclude flaky tests
+- name: Run stable tests
+  run: npx playwright test --grep-invert @flaky
+```
+
+### PR vs Nightly Strategy
+
+```yaml
+# .github/workflows/pr.yml - Fast feedback
+- name: Run critical tests
+  run: npx playwright test --grep "@smoke|@critical"
+
+# .github/workflows/nightly.yml - Full coverage
+- name: Run all tests
+  run: npx playwright test --grep-invert @flaky
+```
+
+### Tag Filtering in Config
+
+```typescript
+// playwright.config.ts
+export default defineConfig({
+  grep: process.env.CI ? /@smoke|@critical/ : undefined,
+  grepInvert: process.env.CI ? /@flaky/ : undefined,
+});
+```
+
+### Project-Based Tag Filtering
+
+```typescript
+// playwright.config.ts
+export default defineConfig({
+  projects: [
+    {
+      name: "smoke",
+      grep: /@smoke/,
+    },
+    {
+      name: "regression",
+      grepInvert: /@smoke/,
+    },
+  ],
+});
+```
+
 ## Best Practices
 
 | Practice                      | Benefit                   |
@@ -377,6 +435,8 @@ test("login", async ({ page }) => {
 | Use sharding for large suites | Faster execution          |
 | Cache browsers                | Faster setup              |
 | Use blob reporter for shards  | Merge reports correctly   |
+| Use tags for PR vs nightly    | Fast feedback + coverage  |
+| Exclude @flaky in CI          | Stable pipeline           |
 
 ## CI Configuration Reference
 
@@ -402,6 +462,7 @@ export default defineConfig({
 
 ## Related References
 
+- **Test tags**: See [test-tags.md](../core/test-tags.md) for tagging and filtering patterns
 - **Performance optimization**: See [performance.md](performance.md) for sharding and parallelization
 - **Debugging CI failures**: See [debugging.md](../debugging/debugging.md) for troubleshooting
 - **Test reporting**: See [debugging.md](../debugging/debugging.md) for trace viewer usage

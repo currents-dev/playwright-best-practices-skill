@@ -19,6 +19,8 @@ npx playwright init                           # scaffold config + first test
 npx playwright test --config=custom.config.ts # use alternate config
 npx playwright test --project=chromium        # run single project
 npx playwright test --reporter=html           # override reporter
+npx playwright test --grep @smoke             # run tests tagged @smoke
+npx playwright test --grep-invert @slow       # exclude @slow tests
 npx playwright show-report                    # open last HTML report
 DEBUG=pw:api npx playwright test              # verbose logging
 ```
@@ -301,6 +303,57 @@ Install dotenv:
 npm install -D dotenv
 ```
 
+### Tag-Based Test Filtering
+
+**Use when**: Running subsets of tests in different CI stages (PR vs nightly).
+
+```ts
+// playwright.config.ts
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './e2e',
+
+  // Filter by tags in CI
+  grep: process.env.CI ? /@smoke|@critical/ : undefined,
+  grepInvert: process.env.CI ? /@flaky/ : undefined,
+});
+```
+
+**Project-specific filtering:**
+
+```ts
+// playwright.config.ts
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './e2e',
+  projects: [
+    {
+      name: 'smoke',
+      grep: /@smoke/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'regression',
+      grepInvert: /@smoke/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'critical-only',
+      grep: /@critical/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
+});
+```
+
+```bash
+# Run specific project
+npx playwright test --project=smoke
+npx playwright test --project=regression
+```
+
 ### Artifact Collection Strategy
 
 | Setting | Local | CI | Reason |
@@ -392,6 +445,7 @@ npx playwright show-report
 
 ## Related
 
+- [test-tags.md](./test-tags.md) - tagging and filtering tests with `--grep`
 - [fixtures-hooks.md](./fixtures-hooks.md) - custom fixtures for per-test state
 - [test-organization.md](test-suite-structure.md) - file structure and naming
 - [authentication.md](../advanced/authentication.md) - setup projects for shared auth

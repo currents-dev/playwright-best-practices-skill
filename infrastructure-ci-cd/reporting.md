@@ -9,10 +9,9 @@
 5. [Screenshot & Video Settings](#screenshot--video-settings)
 6. [Artifact Directory Structure](#artifact-directory-structure)
 7. [CI Artifact Upload](#ci-artifact-upload)
-8. [Allure Integration](#allure-integration)
-9. [Decision Guide](#decision-guide)
-10. [Anti-Patterns](#anti-patterns)
-11. [Troubleshooting](#troubleshooting)
+8. [Decision Guide](#decision-guide)
+9. [Anti-Patterns](#anti-patterns)
+10. [Troubleshooting](#troubleshooting)
 
 > **When to use**: Configuring test output for debugging, CI dashboards, and team visibility.
 
@@ -302,49 +301,6 @@ blob-report/
     retention-days: 7
 ```
 
-## Allure Integration
-
-```bash
-npm install -D allure-playwright
-```
-
-```typescript
-import { defineConfig } from '@playwright/test';
-
-export default defineConfig({
-  reporter: [
-    ['line'],
-    ['allure-playwright', {
-      detail: true,
-      outputFolder: 'allure-results',
-      suiteTitle: true,
-    }],
-  ],
-});
-```
-
-```bash
-# Generate and view
-npx allure generate allure-results -o allure-report --clean
-npx allure open allure-report
-```
-
-**Add metadata to tests:**
-
-```typescript
-import { test } from '@playwright/test';
-import { allure } from 'allure-playwright';
-
-test('payment flow', async ({ page }) => {
-  await allure.epic('Payments');
-  await allure.feature('Checkout');
-  await allure.story('Card Payment');
-  await allure.severity('critical');
-
-  await page.goto('/checkout');
-});
-```
-
 ## Decision Guide
 
 | Scenario | Reporter Configuration |
@@ -354,7 +310,6 @@ test('payment flow', async ({ page }) => {
 | GitLab CI | `[['dot'], ['html'], ['junit']]` |
 | Azure DevOps / Jenkins | `[['dot'], ['html'], ['junit']]` |
 | Sharded CI | `[['blob'], ['github']]` |
-| Allure dashboard | `[['line'], ['allure-playwright']]` |
 | Custom dashboard | `[['json', { outputFile: '...' }]]` + custom reporter |
 
 | Artifact | When to Collect | Retention | Upload Condition |

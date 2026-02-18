@@ -1,6 +1,6 @@
 ---
 name: playwright-best-practices
-description: Provides comprehensive guidance for writing, debugging, and maintaining Playwright tests in TypeScript. Use when writing Playwright tests, fixing flaky tests, debugging failures, implementing Page Object Model, configuring CI/CD, optimizing performance, mocking APIs, handling authentication or OAuth, testing accessibility (axe-core), file uploads/downloads, date/time mocking, WebSockets, geolocation, permissions, multi-tab/popup flows, mobile/responsive layouts, touch gestures, GraphQL, error handling, offline mode, multi-user collaboration, third-party services (payments, email verification), console error monitoring, global setup/teardown, test annotations (skip, fixme, slow), project dependencies, security testing (XSS, CSRF, auth), performance budgets (Web Vitals, Lighthouse), iframes, component testing, canvas/WebGL, service workers/PWA, test coverage, i18n/localization, Electron apps, or browser extension testing. Covers E2E, component, API, visual, accessibility, security, Electron, and extension testing.
+description: Provides comprehensive guidance for writing, debugging, and maintaining Playwright tests in TypeScript. Use when writing Playwright tests, fixing flaky tests, debugging failures, implementing Page Object Model, configuring CI/CD, optimizing performance, mocking APIs, handling authentication or OAuth, testing accessibility (axe-core), file uploads/downloads, date/time mocking, WebSockets, geolocation, permissions, multi-tab/popup flows, mobile/responsive layouts, touch gestures, GraphQL, error handling, offline mode, multi-user collaboration, third-party services (payments, email verification), console error monitoring, global setup/teardown, test annotations (skip, fixme, slow), test tags (@smoke, @fast, @critical, filtering with --grep), project dependencies, security testing (XSS, CSRF, auth), performance budgets (Web Vitals, Lighthouse), iframes, component testing, canvas/WebGL, service workers/PWA, test coverage, i18n/localization, Electron apps, or browser extension testing. Covers E2E, component, API, visual, accessibility, security, Electron, and extension testing.
 license: MIT
 metadata:
   author: currents.dev
@@ -36,6 +36,7 @@ Consult these references based on what you're doing:
 | **Testing accessibility**           | [accessibility.md](testing-patterns/accessibility.md)                                                                                                           |
 | **Testing security (XSS, CSRF)**    | [security-testing.md](testing-patterns/security-testing.md)                                                                                                     |
 | **Using test annotations**          | [annotations.md](core/annotations.md)                                                                                                               |
+| **Using test tags**                 | [test-tags.md](core/test-tags.md)                                                                                                                   |
 | **Testing iframes**                 | [iframes.md](browser-apis/iframes.md)                                                                                                                       |
 | **Testing canvas/WebGL**            | [canvas-webgl.md](testing-patterns/canvas-webgl.md)                                                                                                             |
 | **Internationalization (i18n)**     | [i18n.md](testing-patterns/i18n.md)                                                                                                                             |
@@ -183,6 +184,7 @@ Consult these references based on what you're doing:
 | **Performance budgets & Web Vitals** | [performance-testing.md](testing-patterns/performance-testing.md)                                                      |
 | **Lighthouse integration**           | [performance-testing.md](testing-patterns/performance-testing.md)                                                      |
 | **Test annotations (skip, fixme)**   | [annotations.md](core/annotations.md)                                                                      |
+| **Test tags (@smoke, @fast)**        | [test-tags.md](core/test-tags.md)                                                                          |
 | **Test steps for reporting**         | [annotations.md](core/annotations.md)                                                                      |
 
 ## Quick Decision Tree
@@ -274,10 +276,18 @@ What are you doing?
 │  ├─ Test coverage → infrastructure-ci-cd/test-coverage.md
 │  └─ Project config → core/configuration.md, core/projects-dependencies.md
 │
-└─ Organizing tests?
-   ├─ Skip/fixme/slow tests → core/annotations.md
-   ├─ Test steps → core/annotations.md
-   └─ Conditional execution → core/annotations.md
+├─ Organizing tests?
+│  ├─ Skip/fixme/slow tests → core/annotations.md
+│  ├─ Test tags (@smoke, @fast) → core/test-tags.md
+│  ├─ Filtering tests (--grep) → core/test-tags.md
+│  ├─ Test steps → core/annotations.md
+│  └─ Conditional execution → core/annotations.md
+│
+└─ Running subset of tests?
+   ├─ By tag (@smoke, @critical) → core/test-tags.md
+   ├─ Exclude slow/flaky tests → core/test-tags.md
+   ├─ PR vs nightly tests → core/test-tags.md, infrastructure-ci-cd/ci-cd.md
+   └─ Project-specific filtering → core/test-tags.md, core/configuration.md
 ```
 
 ## Test Validation Loop

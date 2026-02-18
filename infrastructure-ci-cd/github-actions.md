@@ -533,6 +533,7 @@ export default defineConfig({
 
 ## Related
 
+- [test-tags.md](../core/test-tags.md) — tagging and filtering tests
 - [parallel-sharding.md](parallel-sharding.md) — sharding strategies
 - [reporting.md](reporting.md) — reporter configuration
 - [docker.md](docker.md) — container images
