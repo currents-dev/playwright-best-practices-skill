@@ -27,8 +27,8 @@ Most robust approach - matches how users and assistive technology perceive the p
 
 ```typescript
 // Buttons
-page.getByRole("button", { name: "Submit" });
-page.getByRole("button", { name: /submit/i }); // case-insensitive regex
+page.getByRole("button", { name: "Submit", exact: true }); // exact accessible name
+page.getByRole("button", { name: /submit/i }); // flexible case-insensitive match
 
 // Links
 page.getByRole("link", { name: "Home" });

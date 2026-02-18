@@ -247,9 +247,6 @@ npx playwright test --project=chromium
 
 # Run multiple projects
 npx playwright test --project=chromium --project=firefox
-
-# Run all except one
-npx playwright test --project=!webkit
 ```
 
 ### Run by Grep

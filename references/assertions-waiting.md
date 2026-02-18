@@ -111,7 +111,7 @@ expect(object).toHaveProperty("key", "value");
 // Exceptions
 expect(() => fn()).toThrow();
 expect(() => fn()).toThrow("error message");
-expect(async () => await asyncFn()).rejects.toThrow();
+await expect(asyncFn()).rejects.toThrow();
 ```
 
 ## Soft Assertions
@@ -175,14 +175,14 @@ await page.waitForURL(/\/dashboard/);
 
 // Wait for navigation after action
 await Promise.all([
-  page.waitForNavigation(),
+  page.waitForURL("**/dashboard"),
   page.click('a[href="/dashboard"]'),
 ]);
 
-// Or use Promise.all alternative
-const navigationPromise = page.waitForNavigation();
+// Or without Promise.all
+const urlPromise = page.waitForURL("**/dashboard");
 await page.click("a");
-await navigationPromise;
+await urlPromise;
 ```
 
 ### Wait for Network

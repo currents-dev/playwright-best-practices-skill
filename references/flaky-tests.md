@@ -188,8 +188,14 @@ await page.click("#load-data");
 await expect(page.locator(".data-row")).toHaveCount(10, { timeout: 10000 });
 
 // ✅ BETTER: Wait for network response, then assert
+const responsePromise = page.waitForResponse(
+  (r) =>
+    r.url().includes("/api/data") &&
+    r.request().method() === "GET" &&
+    r.ok(),
+);
 await page.click("#load-data");
-await page.waitForResponse((r) => r.url().includes("/api/data"));
+await responsePromise;
 await expect(page.locator(".data-row")).toHaveCount(10);
 ```
 
@@ -325,7 +331,7 @@ export const test = base.extend<{ tempFile: string }>({
 
 ```bash
 # Run headless with CI environment variable
-CI=true npx playwright test --headed=false
+CI=true npx playwright test
 
 # Limit CPU (Linux/Mac)
 cpulimit -l 50 -- npx playwright test
@@ -346,10 +352,6 @@ export default defineConfig({
   use: {
     viewport: { width: 1280, height: 720 },
     deviceScaleFactor: 1,
-    // Reduce animation-related flakiness
-    launchOptions: {
-      args: ["--disable-animations"],
-    },
   },
 });
 ```
