@@ -21,7 +21,7 @@ docker run --rm \
   -w /app \
   -e CI=true \
   -e BASE_URL=http://host.docker.internal:3000 \
-  mcr.microsoft.com/playwright:latest-noble \
+  mcr.microsoft.com/playwright:v1.48.0-noble \
   bash -c "npm ci && npx playwright test"
 ```
 
@@ -33,7 +33,7 @@ docker run --rm \
   -v $(pwd)/playwright-report:/app/playwright-report \
   -v $(pwd)/test-results:/app/test-results \
   -w /app \
-  mcr.microsoft.com/playwright:latest-noble \
+  mcr.microsoft.com/playwright:v1.48.0-noble \
   bash -c "npm ci && npx playwright test"
 ```
 
@@ -42,7 +42,7 @@ docker run --rm \
 Build a custom image when you need additional dependencies or pre-installed packages:
 
 ```dockerfile
-FROM mcr.microsoft.com/playwright:latest-noble
+FROM mcr.microsoft.com/playwright:v1.48.0-noble
 
 WORKDIR /app
 
@@ -101,7 +101,7 @@ services:
       - /var/lib/postgresql/data
 
   e2e:
-    image: mcr.microsoft.com/playwright:latest-noble
+    image: mcr.microsoft.com/playwright:v1.48.0-noble
     working_dir: /app
     volumes:
       - .:/app
@@ -133,9 +133,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:latest-noble
+      image: mcr.microsoft.com/playwright:v1.48.0-noble
     steps:
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v4
       - run: npm ci
       - run: npx playwright test
         env:
@@ -146,7 +146,7 @@ jobs:
 
 ```yaml
 test:
-  image: mcr.microsoft.com/playwright:latest-noble
+  image: mcr.microsoft.com/playwright:v1.48.0-noble
   script:
     - npm ci
     - npx playwright test
@@ -158,7 +158,7 @@ test:
 pipeline {
     agent {
         docker {
-            image 'mcr.microsoft.com/playwright:latest-noble'
+            image 'mcr.microsoft.com/playwright:v1.48.0-noble'
             args '-u root'
         }
     }
@@ -180,7 +180,7 @@ VS Code Dev Container or GitHub Codespaces configuration:
 ```json
 {
   "name": "Playwright Dev",
-  "image": "mcr.microsoft.com/playwright:latest-noble",
+  "image": "mcr.microsoft.com/playwright:v1.48.0-noble",
   "features": {
     "ghcr.io/devcontainers/features/node:latest": {
       "version": "20"
@@ -256,7 +256,7 @@ Match user IDs or run as root:
 ```bash
 docker run --rm -u $(id -u):$(id -g) \
   -v $(pwd):/app -w /app \
-  mcr.microsoft.com/playwright:latest-noble \
+  mcr.microsoft.com/playwright:v1.48.0-noble \
   npx playwright test
 ```
 
@@ -265,7 +265,7 @@ docker run --rm -u $(id -u):$(id -g) \
 Docker Desktop I/O overhead. Copy files instead of mounting:
 
 ```dockerfile
-FROM mcr.microsoft.com/playwright:latest-noble
+FROM mcr.microsoft.com/playwright:v1.48.0-noble
 WORKDIR /app
 COPY . .
 RUN npm ci
@@ -278,6 +278,6 @@ Or use delegated mount:
 docker run --rm \
   -v $(pwd):/app:delegated \
   -w /app \
-  mcr.microsoft.com/playwright:latest-noble \
+  mcr.microsoft.com/playwright:v1.48.0-noble \
   bash -c "npm ci && npx playwright test"
 ```

@@ -29,7 +29,7 @@ If only using one pattern, choose **custom fixtures** — they handle setup/tear
 
 ## Selection Flowchart
 
-```
+```text
 What kind of reusable code?
 |
 +-- Interacts with browser page/component?
@@ -257,7 +257,7 @@ test('update account email', async ({ page }) => {
 
 ## Combined Project Structure
 
-```
+```text
 tests/
 +-- fixtures/
 |   +-- auth.fixture.ts

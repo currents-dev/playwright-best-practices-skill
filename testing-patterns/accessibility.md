@@ -356,4 +356,4 @@ export default defineConfig({
 ## Related References
 
 - **Locators**: See [locators.md](../core/locators.md) for role-based selectors
-- **Visual testing**: See [test-organization.md](../core/test-suite-structure.md) for screenshot comparison
+- **Visual testing**: See [test-suite-structure.md](../core/test-suite-structure.md) for screenshot comparison

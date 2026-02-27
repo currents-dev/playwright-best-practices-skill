@@ -489,4 +489,4 @@ export const test = base.extend<{}, { db: DbTransaction }>({
 ## Related References
 
 - **Fixtures**: See [fixtures-hooks.md](fixtures-hooks.md) for fixture patterns
-- **API Testing**: See [test-organization.md](test-suite-structure.md) for API mocking
+- **API Testing**: See [test-suite-structure.md](test-suite-structure.md) for API mocking

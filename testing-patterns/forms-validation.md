@@ -61,9 +61,9 @@ test("typeahead with API-driven suggestions", async ({ page }) => {
   await page.goto("/shipping");
 
   const streetField = page.getByLabel("Street");
+  const responsePromise = page.waitForResponse("**/api/address-lookup*");
   await streetField.pressSequentially("456 Elm", { delay: 50 });
 
-  const responsePromise = page.waitForResponse("**/api/address-lookup*");
   await responsePromise;
 
   await page.getByRole("option", { name: /456 Elm St/ }).click();

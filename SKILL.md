@@ -117,7 +117,7 @@ Consult these references based on what you're doing:
 | **POM vs fixtures decision**         | [pom-vs-fixtures.md](architecture/pom-vs-fixtures.md)                                                            |
 | **Test type selection**              | [test-architecture.md](architecture/test-architecture.md)                                                        |
 | **Mock vs real services**            | [when-to-mock.md](architecture/when-to-mock.md)                                                                  |
-| **Test suite structure**             | [test-suite-structure.md](core/test-suite-structure.md), [test-suite-structure.md](core/test-suite-structure.md)       |
+| **Test suite structure**             | [test-suite-structure.md](core/test-suite-structure.md)                                                                 |
 
 ### Framework-Specific Testing
 

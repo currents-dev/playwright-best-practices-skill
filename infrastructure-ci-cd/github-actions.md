@@ -49,13 +49,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v4
 
       - run: npm ci
 
       - name: Cache browsers
         id: browser-cache
-        uses: actions/cache@latest
+        uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -71,7 +71,7 @@ jobs:
       - run: npx playwright test
 
       - name: Upload report
-        uses: actions/upload-artifact@latest
+        uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
           name: test-report
@@ -79,7 +79,7 @@ jobs:
           retention-days: 14
 
       - name: Upload traces
-        uses: actions/upload-artifact@latest
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: traces
@@ -119,13 +119,13 @@ jobs:
         shard: [1/4, 2/4, 3/4, 4/4]
 
     steps:
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v4
 
       - run: npm ci
 
       - name: Cache browsers
         id: browser-cache
-        uses: actions/cache@latest
+        uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -142,7 +142,7 @@ jobs:
         run: npx playwright test --shard=${{ matrix.shard }}
 
       - name: Upload blob report
-        uses: actions/upload-artifact@latest
+        uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
           name: blob-${{ strategy.job-index }}
@@ -155,12 +155,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v4
 
       - run: npm ci
 
       - name: Download blob reports
-        uses: actions/download-artifact@latest
+        uses: actions/download-artifact@v4
         with:
           path: all-blobs
           pattern: blob-*
@@ -170,7 +170,7 @@ jobs:
         run: npx playwright merge-reports --reporter=html ./all-blobs
 
       - name: Upload merged report
-        uses: actions/upload-artifact@latest
+        uses: actions/upload-artifact@v4
         with:
           name: test-report
           path: playwright-report/
@@ -208,10 +208,10 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:latest
+      image: mcr.microsoft.com/playwright:v1.48.0-noble
 
     steps:
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v4
 
       - run: npm ci
 
@@ -220,7 +220,7 @@ jobs:
         env:
           HOME: /root
 
-      - uses: actions/upload-artifact@latest
+      - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
           name: test-report
@@ -255,13 +255,13 @@ jobs:
       API_TOKEN: ${{ secrets.API_TOKEN }}
 
     steps:
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v4
 
       - run: npm ci
 
       - name: Cache browsers
         id: browser-cache
-        uses: actions/cache@latest
+        uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -277,7 +277,7 @@ jobs:
       - name: Run smoke tests
         run: npx playwright test --grep @smoke
 
-      - uses: actions/upload-artifact@latest
+      - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
           name: staging-report
@@ -309,7 +309,7 @@ jobs:
       BASE_URL: ${{ vars.STAGING_URL }}
 
     steps:
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v4
 
       - run: npm ci
 
@@ -319,7 +319,7 @@ jobs:
       - name: Run full regression
         run: npx playwright test --grep @regression
 
-      - uses: actions/upload-artifact@latest
+      - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
           name: nightly-${{ github.run_number }}
@@ -373,13 +373,18 @@ jobs:
       TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
 
     steps:
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
 
       - run: npm ci
 
       - name: Cache browsers
         id: browser-cache
-        uses: actions/cache@latest
+        uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -395,10 +400,10 @@ jobs:
       - name: Run tests
         run: ${{ inputs.test-command }}
 
-      - uses: actions/upload-artifact@latest
+      - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: test-report-${{ strategy.job-index }}
+          name: test-report
           path: playwright-report/
           retention-days: 14
 ```
@@ -490,13 +495,13 @@ export default defineConfig({
 
 ```yaml
 # Upload in each shard
-- uses: actions/upload-artifact@latest
+- uses: actions/upload-artifact@v4
   with:
     name: blob-${{ strategy.job-index }}
     path: blob-report/
 
 # Download in merge job
-- uses: actions/download-artifact@latest
+- uses: actions/download-artifact@v4
   with:
     path: all-blobs
     pattern: blob-*

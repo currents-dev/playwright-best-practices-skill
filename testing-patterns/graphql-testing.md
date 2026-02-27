@@ -190,6 +190,11 @@ export const test = base.extend<GraphQLFixtures>({
       },
     });
     const { data } = await loginResp.json();
+    
+    if (!data?.login?.token) {
+      throw new Error(`Admin login failed: status ${loginResp.status()}, response: ${JSON.stringify(data)}`);
+    }
+    
     await loginCtx.dispose();
 
     const ctx = await playwright.request.newContext({

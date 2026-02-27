@@ -447,6 +447,6 @@ npx playwright show-report
 
 - [test-tags.md](./test-tags.md) - tagging and filtering tests with `--grep`
 - [fixtures-hooks.md](./fixtures-hooks.md) - custom fixtures for per-test state
-- [test-organization.md](test-suite-structure.md) - file structure and naming
+- [test-suite-structure.md](test-suite-structure.md) - file structure and naming
 - [authentication.md](../advanced/authentication.md) - setup projects for shared auth
 - [projects-dependencies.md](./projects-dependencies.md) - advanced multi-project patterns

@@ -448,5 +448,5 @@ export const test = base.extend<NetworkFixtures>({
 
 ## Related References
 
-- **Basic Mocking**: See [test-organization.md](../core/test-suite-structure.md) for simple mocking
+- **Basic Mocking**: See [test-suite-structure.md](../core/test-suite-structure.md) for simple mocking
 - **WebSockets**: See [websockets.md](../browser-apis/websockets.md) for real-time mocking

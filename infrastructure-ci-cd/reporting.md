@@ -153,11 +153,21 @@ class NotificationReporter implements Reporter {
 
     const webhookUrl = process.env.NOTIFICATION_WEBHOOK;
     if (webhookUrl) {
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: message.join('\n') }),
-      });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: message.join('\n') }),
+          signal: controller.signal,
+        });
+      } catch (error) {
+        // Intentionally swallow notifier failures to avoid blocking test completion
+        console.warn('Webhook notification failed:', error.message);
+      } finally {
+        clearTimeout(timeout);
+      }
     }
   }
 }
@@ -259,7 +269,7 @@ use: {
 
 ## Artifact Directory Structure
 
-```
+```text
 test-results/
 ├── checkout-test-chromium/
 │   ├── trace.zip
@@ -283,14 +293,14 @@ blob-report/
 ### GitHub Actions
 
 ```yaml
-- uses: actions/upload-artifact@latest
+- uses: actions/upload-artifact@v4
   if: ${{ !cancelled() }}
   with:
     name: playwright-report
     path: playwright-report/
     retention-days: 14
 
-- uses: actions/upload-artifact@latest
+- uses: actions/upload-artifact@v4
   if: failure()
   with:
     name: test-traces

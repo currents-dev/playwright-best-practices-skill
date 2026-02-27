@@ -361,7 +361,7 @@ Total: 24 tests, ~22 seconds. API tests catch most regressions. Component tests 
 
 ## Related
 
-- [test-organization.md](../core/test-suite-structure.md) — file structure and naming
+- [test-suite-structure.md](../core/test-suite-structure.md) — file structure and naming
 - [api-testing.md](../testing-patterns/api-testing.md) — Playwright's `request` API for HTTP testing
 - [component-testing.md](../testing-patterns/component-testing.md) — setting up component tests
 - [authentication.md](../advanced/authentication.md) — auth flow patterns with `storageState`

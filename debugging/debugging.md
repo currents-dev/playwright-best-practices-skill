@@ -183,7 +183,7 @@ const response = await responsePromise;
 console.log("Status:", response.status());
 ```
 
-> **For comprehensive waiting patterns** (navigation, element state, network, polling), see [assertions-waiting.md](assertions-waiting.md#waiting-strategies).
+> **For comprehensive waiting patterns** (navigation, element state, network, polling), see [assertions-waiting.md](../core/assertions-waiting.md#waiting-strategies).
 
 ### Debug Slow Requests
 

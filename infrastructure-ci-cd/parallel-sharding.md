@@ -123,10 +123,10 @@ merge-reports:
   needs: test
   runs-on: ubuntu-latest
   steps:
-    - uses: actions/checkout@latest
+    - uses: actions/checkout@v4
     - run: npm ci
 
-    - uses: actions/download-artifact@latest
+    - uses: actions/download-artifact@v4
       with:
         path: all-blob-reports
         pattern: blob-report-*
@@ -134,7 +134,7 @@ merge-reports:
 
     - run: npx playwright merge-reports --reporter=html ./all-blob-reports
 
-    - uses: actions/upload-artifact@latest
+    - uses: actions/upload-artifact@v4
       with:
         name: playwright-report
         path: playwright-report/
@@ -239,7 +239,7 @@ jobs:
       shard-count: ${{ steps.calc.outputs.count }}
       shard-matrix: ${{ steps.calc.outputs.matrix }}
     steps:
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v4
       - run: npm ci
       - id: calc
         run: |
@@ -269,7 +269,7 @@ jobs:
       matrix:
         shard: ${{ fromJson(needs.calculate-shards.outputs.shard-matrix) }}
     steps:
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v4
       - run: npm ci
       - run: npx playwright install --with-deps
       - run: npx playwright test --shard=${{ matrix.shard }}
@@ -333,12 +333,12 @@ jobs:
 - **Blob reports collide**. Use unique names:
   ```yaml
   # Each shard
-  - uses: actions/upload-artifact@latest
+  - uses: actions/upload-artifact@v4
     with:
       name: blob-report-${{ strategy.job-index }}
       path: blob-report/
   # Merge step
-  - uses: actions/download-artifact@latest
+  - uses: actions/download-artifact@v4
     with:
       pattern: blob-report-*
       merge-multiple: true

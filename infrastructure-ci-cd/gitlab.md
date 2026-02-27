@@ -27,7 +27,7 @@ npx playwright test --reporter=dot    # minimal output for CI logs
 
 ```yaml
 # .gitlab-ci.yml
-image: mcr.microsoft.com/playwright:latest
+image: mcr.microsoft.com/playwright:v1.48.0-noble
 
 stages:
   - install
@@ -77,7 +77,7 @@ e2e:
 **Avoid when**: Suite runs under 5 minutes.
 
 ```yaml
-image: mcr.microsoft.com/playwright:latest
+image: mcr.microsoft.com/playwright:v1.48.0-noble
 
 stages:
   - install
@@ -149,7 +149,7 @@ export default defineConfig({
 **Use when**: Tests need secrets (API keys, passwords) and should only run on merge requests or the default branch.
 
 ```yaml
-image: mcr.microsoft.com/playwright:latest
+image: mcr.microsoft.com/playwright:v1.48.0-noble
 
 stages:
   - test
@@ -192,7 +192,7 @@ Navigate to **Settings > CI/CD > Variables** and add:
 **Use when**: Running Chromium on MRs and all browsers on the default branch.
 
 ```yaml
-image: mcr.microsoft.com/playwright:latest
+image: mcr.microsoft.com/playwright:v1.48.0-noble
 
 stages:
   - install
@@ -252,7 +252,7 @@ stages:
 
 e2e:integration:
   stage: test
-  image: mcr.microsoft.com/playwright:latest
+  image: mcr.microsoft.com/playwright:v1.48.0-noble
   services:
     - name: postgres:latest
       alias: db
@@ -288,7 +288,7 @@ e2e:integration:
 ```yaml
 e2e:nightly:
   stage: test
-  image: mcr.microsoft.com/playwright:latest
+  image: mcr.microsoft.com/playwright:v1.48.0-noble
   before_script:
     - npm ci
   script:
@@ -320,7 +320,7 @@ Set up the schedule in **CI/CD > Schedules**: `0 3 * * 1-5` (3 AM UTC, weekdays)
 
 | Anti-Pattern                                         | Problem                                                            | Do This Instead                                                           |
 | ---------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| Not using the Playwright Docker image                | Installing browsers every run adds 1-2 minutes                     | Use `mcr.microsoft.com/playwright:latest` as base image                   |
+| Not using the Playwright Docker image                | Installing browsers every run adds 1-2 minutes                     | Use `mcr.microsoft.com/playwright:v1.48.0-noble` as base image                   |
 | `artifacts: when: on_failure` only                   | No report when tests pass; can't verify results                    | Use `when: always` to capture reports regardless                          |
 | No `expire_in` on artifacts                          | Artifacts accumulate and consume storage                           | Set `expire_in: 14 days` for reports, `1 hour` for intermediate artifacts |
 | Hardcoding `CI_NODE_TOTAL` in shard flag             | Breaks when you change `parallel:` value                           | Use `--shard=$CI_NODE_INDEX/$CI_NODE_TOTAL`                               |
@@ -337,7 +337,7 @@ Set up the schedule in **CI/CD > Schedules**: `0 3 * * 1-5` (3 AM UTC, weekdays)
 
 ```yaml
 # Check your version: npm ls @playwright/test
-image: mcr.microsoft.com/playwright:latest
+image: mcr.microsoft.com/playwright:v1.48.0-noble
 ```
 
 ### Tests hang in GitLab runner: "Navigation timeout exceeded"

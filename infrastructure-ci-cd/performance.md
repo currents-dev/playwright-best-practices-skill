@@ -449,5 +449,5 @@ test("lighthouse audit", async ({ page }) => {
 ## Related References
 
 - **CI/CD sharding**: See [ci-cd.md](ci-cd.md) for CI configuration
-- **Test organization**: See [test-organization.md](../core/test-suite-structure.md) for structuring tests
+- **Test organization**: See [test-suite-structure.md](../core/test-suite-structure.md) for structuring tests
 - **Fixtures for reuse**: See [fixtures-hooks.md](../core/fixtures-hooks.md) for authentication patterns

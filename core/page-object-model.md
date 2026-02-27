@@ -312,4 +312,4 @@ test("can login", async ({ loginPage }) => {
 
 - **Locator strategies**: See [locators.md](locators.md) for selecting elements
 - **Fixtures**: See [fixtures-hooks.md](fixtures-hooks.md) for advanced fixture patterns
-- **Test organization**: See [test-organization.md](test-suite-structure.md) for structuring test suites
+- **Test organization**: See [test-suite-structure.md](test-suite-structure.md) for structuring test suites

@@ -117,8 +117,11 @@ For JavaScript-driven animations (GSAP, Framer Motion), wait for stability:
 test('page with JS animations', async ({ page }) => {
   await page.goto('/animated-hero');
 
-  await page.getByTestId('hero-banner').waitFor({ state: 'visible' });
-  await page.waitForTimeout(500);
+  const heroBanner = page.getByTestId('hero-banner');
+  await heroBanner.waitFor({ state: 'visible' });
+  
+  // Wait for animation to complete by checking for stable state
+  await expect(heroBanner).not.toHaveClass(/animating/);
 
   await expect(page).toHaveScreenshot('hero.png', {
     animations: 'disabled',
@@ -198,7 +201,7 @@ jobs:
   visual-tests:
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:latest
+      image: mcr.microsoft.com/playwright:v1.48.0-noble
     steps:
       - uses: actions/checkout@v4
 
@@ -226,7 +229,7 @@ jobs:
 
 ```bash
 docker run --rm -v $(pwd):/work -w /work \
-  mcr.microsoft.com/playwright:latest \
+  mcr.microsoft.com/playwright:v1.48.0-noble \
   npx playwright test --update-snapshots --project=visual
 ```
 
@@ -236,7 +239,7 @@ docker run --rm -v $(pwd):/work -w /work \
 {
   "scripts": {
     "test:visual": "npx playwright test --project=visual",
-    "test:visual:update": "docker run --rm -v $(pwd):/work -w /work mcr.microsoft.com/playwright:latest npx playwright test --update-snapshots --project=visual"
+    "test:visual:update": "docker run --rm -v $(pwd):/work -w /work mcr.microsoft.com/playwright:v1.48.0-noble npx playwright test --update-snapshots --project=visual"
   }
 }
 ```
@@ -540,7 +543,7 @@ export default defineConfig({
 
 ```bash
 docker run --rm -v $(pwd):/work -w /work \
-  mcr.microsoft.com/playwright:latest \
+  mcr.microsoft.com/playwright:v1.48.0-noble \
   npx playwright test --update-snapshots --project=visual
 ```
 
@@ -577,7 +580,7 @@ Check HTML report diff image to determine if it's regression or noise.
 
 ```yaml
 container:
-  image: mcr.microsoft.com/playwright:latest
+  image: mcr.microsoft.com/playwright:v1.48.0-noble
 ```
 
 ### Animations cause random diff failures

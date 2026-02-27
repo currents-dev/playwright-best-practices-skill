@@ -24,7 +24,7 @@ await page.context().storageState({ path: ".auth/session.json" });
 // Reuse in config — every test starts authenticated
 {
   use: {
-    storageState: ".auth/session.json";
+    storageState: ".auth/session.json"
   }
 }
 
@@ -729,7 +729,7 @@ test.describe("unauthenticated access", () => {
 
 ### UI Login vs API Login vs Storage State
 
-```
+```text
 Need to test the login page itself?
 ├── Yes → UI login with LoginPage POM, no storageState
 └── No → Do you have a login API endpoint?

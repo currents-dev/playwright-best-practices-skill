@@ -60,7 +60,7 @@ export default defineConfig({
 
 ### Project Structure
 
-```
+```text
 my-angular-app/
   src/
   e2e/
