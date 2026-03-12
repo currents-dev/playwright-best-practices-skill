@@ -134,8 +134,10 @@ Add `.auth/` to `.gitignore`. Auth state files contain session tokens and should
 
 ### Per-Worker Authentication
 
-**Use when**: Each parallel worker needs its own authenticated session to avoid race conditions.
-**Avoid when**: Tests are read-only and a shared session is safe.
+**Use when**: Each parallel worker needs its own authenticated session to avoid race conditions for tests that modify server-side state.
+**Avoid when**: Tests are read-only and a modifying shared session is safe, you can use a single shared account.
+
+> **Sharded runs**: `parallelIndex` resets per shard, so different shards can have workers with the same index. To avoid collisions, include the shard identifier in the username (e.g., `worker-${SHARD_INDEX}-${parallelIndex}@example.com`) by passing a `SHARD_INDEX` environment variable from your CI matrix.
 
 ```typescript
 // fixtures/auth.ts
@@ -345,7 +347,15 @@ test("admin sees remove button, guest does not", async ({ loginAs }) => {
 **Use when**: Your app authenticates via a third-party OAuth provider and you cannot hit the real provider in tests.
 **Avoid when**: You have a dedicated test tenant on the OAuth provider.
 
-Intercept the OAuth callback route and inject a valid session directly, bypassing the provider.
+A typical OAuth flow works like this:
+
+1. User clicks "Sign in with Provider" → browser navigates to `https://accounts.provider.com/authorize?...`
+2. User authenticates on the provider's page → provider redirects back to your app's **callback route** (e.g. `http://localhost:4000/auth/callback?code=ABC&state=XYZ`)
+3. Your backend exchanges the `code` for an access token, creates a session, and redirects the user to a logged-in page
+
+In tests you can short-circuit step 2 with `page.route()`: intercept the outbound request to the provider and respond with a `302` redirect straight to your callback route, supplying a mock `code` and `state`. Your backend still executes its normal callback handler — the only part that's mocked is the provider's authorization page.
+
+For cases where you want to skip the browser redirect entirely, a second approach calls a **test-only API endpoint** that creates the session server-side and returns the session cookie directly.
 
 ```typescript
 // tests/oauth-login.spec.ts — mock the callback route
@@ -376,10 +386,9 @@ import { test, expect } from "@playwright/test";
 
 test("bypass OAuth entirely via API session injection", async ({
   page,
-  request,
 }) => {
   // Call a test-only endpoint that creates a session without OAuth
-  const response = await request.post("/api/test/create-session", {
+  const response = await page.request.post("/api/test/create-session", {
     data: {
       email: "oauth-user@example.com",
       provider: "provider",

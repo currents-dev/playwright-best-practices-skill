@@ -253,12 +253,14 @@ test("form shows loading state during submission", async ({ page }) => {
   await page.getByLabel("Email").fill("user@test.com");
   await page.getByLabel("Details").fill("Found an issue");
 
-  await page.getByRole("button", { name: "Submit feedback" }).click();
+  const submit = page.getByRole("button", { name: /Submit feedback|Submitting/ });
+  await submit.click();
 
-  await expect(page.getByRole("button", { name: /Submitting/ })).toBeDisabled();
-  await expect(
-    page.getByRole("button", { name: "Submit feedback" })
-  ).toBeEnabled();
+  await expect(submit).toHaveText(/Submitting/);
+  await expect(submit).toBeDisabled();
+
+  await expect(submit).toHaveText("Submit feedback");
+  await expect(submit).toBeEnabled();
 });
 
 test("form redirects after successful submission", async ({ page }) => {
