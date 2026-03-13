@@ -150,7 +150,7 @@ test("complete a multi-step booking wizard", async ({ page }) => {
 
   await test.step("enter guest information", async () => {
     await expect(
-      page.getByRole("heading", { name: "Guest Info" })
+      page.getByRole("heading", { name: "Guest Info" }),
     ).toBeVisible();
 
     await page.getByLabel("Full name").fill("Alice Smith");
@@ -162,7 +162,7 @@ test("complete a multi-step booking wizard", async ({ page }) => {
 
   await test.step("select room options", async () => {
     await expect(
-      page.getByRole("heading", { name: "Room Selection" })
+      page.getByRole("heading", { name: "Room Selection" }),
     ).toBeVisible();
 
     await page.getByLabel("Room type").selectOption("suite");
@@ -174,7 +174,7 @@ test("complete a multi-step booking wizard", async ({ page }) => {
 
   await test.step("confirm booking", async () => {
     await expect(
-      page.getByRole("heading", { name: "Confirmation" })
+      page.getByRole("heading", { name: "Confirmation" }),
     ).toBeVisible();
 
     await expect(page.getByText("Alice Smith")).toBeVisible();
@@ -184,7 +184,7 @@ test("complete a multi-step booking wizard", async ({ page }) => {
   });
 
   await expect(
-    page.getByRole("heading", { name: "Booking complete" })
+    page.getByRole("heading", { name: "Booking complete" }),
   ).toBeVisible();
 });
 
@@ -242,7 +242,7 @@ test("form submission shows server-side validation errors", async ({
   await page.getByRole("button", { name: "Sign up" }).click();
 
   await expect(
-    page.getByText("Email address already registered")
+    page.getByText("Email address already registered"),
   ).toBeVisible();
 });
 
@@ -253,7 +253,9 @@ test("form shows loading state during submission", async ({ page }) => {
   await page.getByLabel("Email").fill("user@test.com");
   await page.getByLabel("Details").fill("Found an issue");
 
-  const submit = page.getByRole("button", { name: /Submit feedback|Submitting/ });
+  const submit = page.getByRole("button", {
+    name: /Submit feedback|Submitting/,
+  });
   await submit.click();
 
   await expect(submit).toHaveText(/Submitting/);
@@ -371,7 +373,7 @@ test("native HTML5 validation with required attribute", async ({ page }) => {
 
   const emailInput = page.getByLabel("Email");
   const validationMessage = await emailInput.evaluate(
-    (el: HTMLInputElement) => el.validationMessage
+    (el: HTMLInputElement) => el.validationMessage,
   );
   expect(validationMessage).toBeTruthy();
 });
@@ -536,7 +538,7 @@ await page.getByLabel("Date").fill("2025-06-15");
 await page.getByLabel("Date").dispatchEvent("change");
 ```
 
-### `selectOption()` throws "not a <select> element"
+### `selectOption()` throws "not a select element"
 
 **Cause**: The dropdown is a custom component (ARIA listbox), not a native `<select>`.
 
