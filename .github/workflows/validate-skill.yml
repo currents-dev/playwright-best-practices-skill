@@ -14,4 +14,4 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Validate agent configs
-        uses: agent-sh/agnix@v0
+        uses: agent-sh/agnix@12a1917d13e7c804bc91768c30dd4159f536c5c6
