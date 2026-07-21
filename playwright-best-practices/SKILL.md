@@ -4,7 +4,7 @@ description: Use when writing Playwright tests, fixing flaky tests, debugging fa
 license: MIT
 metadata:
   author: currents.dev
-  version: "1.1"
+  version: "1.2"
 ---
 
 # Playwright Best Practices
