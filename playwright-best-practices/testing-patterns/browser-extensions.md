@@ -429,40 +429,24 @@ test("chrome.tabs operations", async ({ context }) => {
 ### Context Menus
 
 ```typescript
-test("context menu actions", async ({ context, extensionId }) => {
-  const serviceWorker = context.serviceWorkers()[0] ||
-    (await context.waitForEvent("serviceworker"));
+// Playwright cannot open Chrome's native context menu, and
+// chrome.contextMenus.onClicked has no dispatch(). Test the handler that the
+// extension registers with onClicked.addListener as a plain function.
+import { test, expect } from "@playwright/test";
+import { onContextMenuClick } from "../src/background/contextMenu";
 
-  // Create context menu
-  await serviceWorker.evaluate(async () => {
-    await chrome.contextMenus.create({
-      id: "test-menu",
-      title: "Test Action",
-      contexts: ["selection"],
-    });
-  });
+test("context menu action saves the selection", async () => {
+  const saved: Record<string, unknown>[] = [];
+  globalThis.chrome = {
+    storage: { local: { set: async (items: Record<string, unknown>) => { saved.push(items); } } },
+  } as unknown as typeof chrome;
 
-  // Simulate context menu click
-  const page = await context.newPage();
-  await page.goto("https://example.com");
+  await onContextMenuClick(
+    { menuItemId: "save-selection", selectionText: "selected text" } as chrome.contextMenus.OnClickData,
+    { id: 1, url: "https://example.com" } as chrome.tabs.Tab,
+  );
 
-  // Select text
-  await page.evaluate(() => {
-    const range = document.createRange();
-    range.selectNodeContents(document.body.firstChild!);
-    window.getSelection()?.addRange(range);
-  });
-
-  // Chrome's public onClicked event has no dispatch() method.
-  // For a handler-level test, the test extension must expose the same handler
-  // registered with onClicked.addListener as globalThis.testHooks.onContextMenuClick.
-  // This tests handler logic, not the native context-menu UI.
-  await serviceWorker.evaluate(async () => {
-    await (globalThis as any).testHooks.onContextMenuClick(
-      { menuItemId: "test-menu", selectionText: "selected text" },
-      { id: 1, url: "https://example.com" },
-    );
-  });
+  expect(saved).toEqual([{ savedSelection: "selected text" }]);
 });
 ```
 

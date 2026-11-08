@@ -225,11 +225,9 @@ test("cache updates on new version", async ({ page }) => {
     return keys.map((r) => r.url);
   });
 
-  // The local test server must serve the v2 worker at the same /sw.js URL.
-  // Implement this test-only endpoint in the fixture server; it switches the
-  // worker response to a version whose install handler creates app-cache-v2.
-  // Playwright routing cannot intercept the service worker's update script.
-  await page.request.post("/api/test/sw-version", { data: { version: "v2" } });
+  // Before this step, deploy the next build so /sw.js returns the v2 worker.
+  // page.route() and context.route() cannot intercept the browser's update
+  // request for the service worker script.
 
   // Trigger update
   await page.evaluate(async () => {

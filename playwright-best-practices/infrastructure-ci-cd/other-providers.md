@@ -437,7 +437,7 @@ stages:
 
 ## JUnit Reporter Config
 
-All platforms benefit from JUnit output for native test result display. The examples above use `pw-report/` for HTML artifacts and `results/junit.xml` for test results, so configure those paths explicitly. Sharded examples also need the blob reporter:
+All platforms benefit from JUnit output for native test result display. The examples above use `pw-report/` for HTML artifacts and `results/junit.xml` for test results, so configure those paths explicitly. In sharded runs, also add `["blob"]` so `merge-reports` has input.
 
 ```typescript
 // playwright.config.ts
@@ -449,7 +449,6 @@ export default defineConfig({
         ["dot"],
         ["html", { outputFolder: "pw-report", open: "never" }],
         ["junit", { outputFile: "results/junit.xml" }],
-        ["blob"],
       ]
     : [["html", { open: "on-failure" }]],
 });

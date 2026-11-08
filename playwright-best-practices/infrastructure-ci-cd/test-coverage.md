@@ -109,7 +109,7 @@ test("collect CSS coverage", async ({ page }) => {
 
 ### Converting to Istanbul Format
 
-This script consumes only JavaScript files from the fixture. Supply the captured source to `v8-to-istanbul`: browser script URLs are usually HTTP URLs, not local `file://` URLs. Select your app's served script paths; the `/src/` filter below must match your build. Source maps must be available for mapping bundled code back to original source files.
+This script consumes only JavaScript files from the fixture. Supply the captured source to `v8-to-istanbul`: browser script URLs are usually HTTP URLs, not local `file://` URLs. Select your app's served script paths; the `/src/` filter below must match your build. To map bundled code back to original source files, build with inline source maps (for example, `build.sourcemap: "inline"` in Vite or `devtool: "inline-source-map"` in webpack): `v8-to-istanbul` cannot fetch a separate `.map` file from an HTTP URL. The script uses `fs.readdir` with `recursive: true`, which needs Node.js 20.1 or later.
 
 ```typescript
 // scripts/convert-coverage.ts
