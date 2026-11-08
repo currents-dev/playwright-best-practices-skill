@@ -186,6 +186,37 @@ test("escape closes modal", async ({ page }) => {
 });
 ```
 
+### Page-Level Shortcuts
+
+Press the shortcut right after load, before any click. A click first gives the page keyboard focus and hides the case where nothing has focus yet.
+
+```typescript
+test("shortcut works right after load", async ({ page }) => {
+  await page.goto("/review");
+  await expect(page.getByRole("button", { name: "Reveal" })).toBeVisible();
+
+  await page.keyboard.press("Space");
+
+  await expect(page.getByTestId("answer")).toBeVisible();
+});
+```
+
+A top-level Playwright page has keyboard focus when it loads. An app embedded in an iframe or an editor pane does not: key presses go to the host page until the user clicks into the app. To test that case, load the host page and press the key without clicking into the frame:
+
+```typescript
+test("shortcut works when embedded", async ({ page }) => {
+  await page.goto("/embed-host"); // page that renders the app in an iframe
+  const app = page.frameLocator("#app-frame");
+  await expect(app.getByRole("button", { name: "Reveal" })).toBeVisible();
+
+  await page.keyboard.press("Space");
+
+  // Fails if the app needs a click before it gets key events.
+  // Fix in the app, for example by focusing its root element on load.
+  await expect(app.getByTestId("answer")).toBeVisible();
+});
+```
+
 ## ARIA Validation
 
 ### Role Verification
