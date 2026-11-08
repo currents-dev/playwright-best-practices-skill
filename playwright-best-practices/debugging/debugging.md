@@ -395,6 +395,20 @@ const frame = page.frameLocator("iframe").first();
 console.log(await frame.getByRole("button").count());
 ```
 
+### Browser Executable Missing
+
+`browserType.launch: Executable doesn't exist` means the browser build for this Playwright version is not installed. Each Playwright version needs one specific build. Builds that other versions installed in `~/.cache/ms-playwright` (Linux) or `~/Library/Caches/ms-playwright` (macOS) do not count.
+
+```bash
+# Show the builds this version needs and where they go
+npx playwright install --dry-run
+
+# Install only the browsers the tests use
+npx playwright install chromium
+```
+
+Do not change the `@playwright/test` version to match a build that is already in the cache. Choose the version for the project, then install its browsers. In Docker, use the image tag that matches the version (see [docker.md](../infrastructure-ci-cd/docker.md)).
+
 ## Logging
 
 ### Capture Browser Console
