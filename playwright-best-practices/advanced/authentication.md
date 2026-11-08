@@ -58,7 +58,7 @@ async function generateAuthState() {
   await page.getByLabel("Username").fill("testuser@example.com");
   await page.getByLabel("Password").fill("secretPass123");
   await page.getByRole("button", { name: "Log in" }).click();
-  await page.waitForURL("/home");
+  await page.waitForURL("**/home");
 
   await context.storageState({ path: ".auth/session.json" });
   await browser.close();

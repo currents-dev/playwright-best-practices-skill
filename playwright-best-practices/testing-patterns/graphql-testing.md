@@ -12,7 +12,7 @@
 
 ### Basic Query with Variables
 
-All GraphQL requests go through `POST` to a single endpoint. Send `query`, `variables`, and optionally `operationName` in the JSON body.
+These examples send GraphQL requests through `POST` to a single endpoint. Send `query`, `variables`, and optionally `operationName` in the JSON body. Servers may also support `GET` for queries; mutations use `POST`.
 
 ```typescript
 import { test, expect } from "@playwright/test";
@@ -298,11 +298,12 @@ expect(data.item).toBeDefined();
 
 ```typescript
 // Introspection query to debug schema
-const { data } = await request.post("/graphql", {
+const response = await request.post("/graphql", {
   data: {
     query: `{ __type(name: "Item") { fields { name type { name } } } }`,
   },
 });
+const { data } = await response.json();
 console.log(data.__type.fields);
 ```
 

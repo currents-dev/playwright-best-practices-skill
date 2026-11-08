@@ -286,11 +286,11 @@ jobs:
 | Tests modify shared database     | 1 or isolate   | Useful | Sharding splits files; workers run them |
 | CI has limited resources         | 1 or `'25%'`   | More   | Compensate with more machines           |
 
-| Aspect         | Workers (in-process)      | Shards (across machines)   |
+| Aspect         | Workers (separate processes) | Shards (across machines)   |
 | -------------- | ------------------------- | -------------------------- |
 | What it splits | Tests across CPU cores    | Test files across CI jobs  |
 | Controlled by  | Config or `--workers` CLI | `--shard=X/Y` CLI flag     |
-| Shares memory  | Yes                       | No                         |
+| Shares memory  | No                        | No                         |
 | Report merging | Not needed                | Required (`merge-reports`) |
 | Cost           | Free (same machine)       | More CI minutes            |
 

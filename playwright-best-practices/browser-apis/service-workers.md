@@ -225,19 +225,9 @@ test("cache updates on new version", async ({ page }) => {
     return keys.map((r) => r.url);
   });
 
-  // Simulate app update by mocking SW response
-  await page.route("**/sw.js", (route) => {
-    route.fulfill({
-      contentType: "application/javascript",
-      body: `
-        const VERSION = 'v2';
-        self.addEventListener('install', (e) => {
-          e.waitUntil(caches.open('app-cache-v2'));
-          self.skipWaiting();
-        });
-      `,
-    });
-  });
+  // Before this step, deploy the next build so /sw.js returns the v2 worker.
+  // page.route() and context.route() cannot intercept the browser's update
+  // request for the service worker script.
 
   // Trigger update
   await page.evaluate(async () => {
@@ -254,7 +244,7 @@ test("cache updates on new version", async ({ page }) => {
 
 ## Offline Testing
 
-This section covers **offline-first apps (PWAs)** that are designed to work offline using service workers, caching, and background sync. For testing **unexpected network failures** (error recovery, graceful degradation), see [error-testing.md](error-testing.md#offline-testing).
+This section covers **offline-first apps (PWAs)** that are designed to work offline using service workers, caching, and background sync. For testing **unexpected network failures** (error recovery, graceful degradation), see [error-testing.md](../debugging/error-testing.md#offline-testing).
 
 ### Simulating Offline Mode
 
@@ -345,14 +335,20 @@ test("handles push subscription", async ({ page, context }) => {
   // Grant notification permission
   await context.grantPermissions(["notifications"]);
 
+  // Mock the subscription boundary; do not contact a real push service.
+  await page.addInitScript(() => {
+    PushManager.prototype.subscribe = async () => ({
+      toJSON: () => ({ endpoint: "https://push.example.test/subscription" }),
+    }) as PushSubscription;
+  });
   await page.goto("/pwa-app");
 
-  // Subscribe to push
+  // Exercise the mock (not real VAPID key validation or push delivery)
   const subscription = await page.evaluate(async () => {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: "test-key",
+      // The mocked subscribe method does not validate a VAPID public key.
     });
     return sub.toJSON();
   });
@@ -368,17 +364,15 @@ test("handles push notification", async ({ context, page }) => {
   await context.grantPermissions(["notifications"]);
   await page.goto("/pwa-app");
 
-  // Wait for SW
-  const swPromise = context.waitForEvent("serviceworker");
-  const sw = await swPromise;
+  // Registration may have happened during navigation.
+  const sw = context.serviceWorkers()[0] ||
+    (await context.waitForEvent("serviceworker"));
 
   // Simulate push message to service worker
   await sw.evaluate(async () => {
     // Dispatch push event
     const pushEvent = new PushEvent("push", {
-      data: new PushMessageData(
-        JSON.stringify({ title: "Test", body: "Push message" }),
-      ),
+      data: JSON.stringify({ title: "Test", body: "Push message" }),
     });
     self.dispatchEvent(pushEvent);
   });
@@ -407,6 +401,7 @@ test("notification click opens page", async ({ context, page }) => {
   await page.evaluate(async () => {
     const reg = await navigator.serviceWorker.ready;
     await reg.showNotification("Test", {
+      tag: "test-notification",
       body: "Click me",
       data: { url: "/notification-target" },
     });
@@ -414,11 +409,10 @@ test("notification click opens page", async ({ context, page }) => {
 
   // Simulate clicking notification (via SW)
   const sw = context.serviceWorkers()[0];
-  await sw.evaluate(() => {
+  await sw.evaluate(async () => {
+    const [notification] = await self.registration.getNotifications({ tag: "test-notification" });
     self.dispatchEvent(
-      new NotificationEvent("notificationclick", {
-        notification: { data: { url: "/notification-target" } } as any,
-      }),
+      new NotificationEvent("notificationclick", { notification }),
     );
   });
 
@@ -482,7 +476,7 @@ test("sync event fires when online", async ({ context, page }) => {
   await context.setOffline(false);
 
   // Wait for sync to complete
-  await page.waitForFunction(() => window.syncCompleted, { timeout: 10000 });
+  await page.waitForFunction(() => window.syncCompleted, undefined, { timeout: 10000 });
 });
 ```
 
@@ -498,7 +492,7 @@ test("sync event fires when online", async ({ context, page }) => {
 
 ## Related References
 
-- **Network Failures**: See [error-testing.md](error-testing.md#offline-testing) for unexpected network failure patterns
+- **Network Failures**: See [error-testing.md](../debugging/error-testing.md#offline-testing) for unexpected network failure patterns
 - **Browser APIs**: See [browser-apis.md](browser-apis.md) for permissions
 - **Network Mocking**: See [network-advanced.md](../advanced/network-advanced.md) for network interception
 - **Browser Extensions**: See [browser-extensions.md](../testing-patterns/browser-extensions.md) for extension service worker patterns

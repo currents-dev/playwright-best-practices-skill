@@ -241,7 +241,7 @@ test('removes one file from selection', async ({ page }) => {
 
 ## Drag-and-Drop Zones
 
-Drop zones always have an underlying `input[type="file"]`—target it directly instead of simulating OS-level drag events.
+When a drop zone has an underlying `input[type="file"]`, target it directly for file selection. To exercise a drop-event handler itself, dispatch a `drop` event with a real `DataTransfer` handle (see [file-operations.md](file-operations.md#drag-and-drop)).
 
 ```typescript
 test('uploads via drop zone', async ({ page }) => {
@@ -267,9 +267,12 @@ test('shows visual feedback on drag-over', async ({ page }) => {
 
   const dropZone = page.locator('[data-testid="drop-zone"]');
 
-  await dropZone.dispatchEvent('dragenter', {
-    dataTransfer: { types: ['Files'], files: [] },
+  const dataTransfer = await page.evaluateHandle(() => {
+    const transfer = new DataTransfer();
+    transfer.items.add(new File(['content'], 'dropped.pdf', { type: 'application/pdf' }));
+    return transfer;
   });
+  await dropZone.dispatchEvent('dragenter', { dataTransfer });
 
   await expect(dropZone).toHaveClass(/active|highlight|drag-over/);
   await expect(dropZone).toContainText(/release|drop now/i);
@@ -551,7 +554,7 @@ test('downloads file requiring authentication', async ({ page, request }) => {
 
 ## Tips
 
-1. **Use `setInputFiles` for uploads**. Even drag-and-drop zones have an underlying `input[type="file"]`. Target it directly instead of simulating OS-level drag events.
+1. **Use `setInputFiles` for file inputs**. For a drop zone with an underlying `input[type="file"]`, target the input to select files. This does not exercise the zone's drag/drop handlers; use a real `DataTransfer` handle when testing those handlers.
 
 2. **Prefer in-memory buffers**. Creating files with `Buffer.from()` keeps tests self-contained. Use fixture files only when you need real content (e.g., a valid PDF your app parses).
 

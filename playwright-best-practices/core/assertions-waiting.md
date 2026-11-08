@@ -138,7 +138,7 @@ test("check form", async ({ page }) => {
   await expect.soft(page.getByRole("form")).toBeVisible();
 
   // Exit early if form not visible (pointless to check fields)
-  if (expect.soft.hasFailures()) {
+  if (test.info().errors.length > 0) {
     return;
   }
 

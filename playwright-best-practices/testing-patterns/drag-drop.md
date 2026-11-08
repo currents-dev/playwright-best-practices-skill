@@ -295,9 +295,12 @@ test('simulates drag-over visual feedback', async ({ page }) => {
 
   const dropZone = page.locator('[data-testid="file-drop-zone"]');
 
-  await dropZone.dispatchEvent('dragenter', {
-    dataTransfer: { types: ['Files'] },
+  const dataTransfer = await page.evaluateHandle(() => {
+    const transfer = new DataTransfer();
+    transfer.items.add(new File(['content'], 'report.pdf', { type: 'application/pdf' }));
+    return transfer;
   });
+  await dropZone.dispatchEvent('dragenter', { dataTransfer });
 
   await expect(dropZone).toHaveClass(/drag-active|drop-highlight/);
   await expect(dropZone).toContainText(/drop.*here|release.*upload/i);

@@ -162,7 +162,7 @@ test("handles failure during request", async ({ page }) => {
 
 ## Offline Testing
 
-This section covers **unexpected network failures** and error recovery. For **offline-first apps (PWAs)** with service workers, caching, and background sync, see [service-workers.md](service-workers.md#offline-testing).
+This section covers **unexpected network failures** and error recovery. For **offline-first apps (PWAs)** with service workers, caching, and background sync, see [service-workers.md](../browser-apis/service-workers.md#offline-testing).
 
 ### Go Offline During Session
 

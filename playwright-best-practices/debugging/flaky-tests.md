@@ -199,7 +199,7 @@ await responsePromise;
 await expect(page.locator(".data-row")).toHaveCount(10);
 ```
 
-> **For comprehensive waiting strategies** (navigation, element state, network, polling with `toPass()`), see [assertions-waiting.md](assertions-waiting.md#waiting-strategies).
+> **For comprehensive waiting strategies** (navigation, element state, network, polling with `toPass()`), see [assertions-waiting.md](../core/assertions-waiting.md#waiting-strategies).
 
 **Problem: Complex async state**
 

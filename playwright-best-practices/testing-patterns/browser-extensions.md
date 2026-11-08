@@ -29,7 +29,7 @@ import path from "path";
 export default defineConfig({
   testDir: "./tests",
   use: {
-    // Extensions require non-headless Chromium
+    // Use headed Chromium, or channel: "chromium" for headless extensions.
     headless: false,
   },
   projects: [
@@ -115,8 +115,9 @@ test("load MV3 extension", async () => {
     ],
   });
 
-  // Wait for service worker
-  const serviceWorker = await context.waitForEvent("serviceworker");
+  // The worker may already exist when launchPersistentContext returns.
+  const serviceWorker = context.serviceWorkers()[0] ||
+    (await context.waitForEvent("serviceworker"));
   expect(serviceWorker.url()).toContain("chrome-extension://");
 
   await context.close();
@@ -124,6 +125,8 @@ test("load MV3 extension", async () => {
 ```
 
 ### Manifest V2 (Background Page)
+
+Legacy only: current bundled Chromium no longer supports Manifest V2. The following example requires an older compatible browser; use Manifest V3 with current Playwright.
 
 ```typescript
 test("load MV2 extension", async () => {
@@ -137,8 +140,9 @@ test("load MV2 extension", async () => {
     ],
   });
 
-  // Wait for background page
-  const backgroundPage = await context.waitForEvent("backgroundpage");
+  // The background page may already exist when launch returns.
+  const backgroundPage = context.backgroundPages()[0] ||
+    (await context.waitForEvent("backgroundpage"));
   expect(backgroundPage.url()).toContain("chrome-extension://");
 
   await context.close();
@@ -160,11 +164,8 @@ test("load multiple extensions", async () => {
     ],
   });
 
-  // Both service workers should be available
-  await context.waitForEvent("serviceworker");
-  await context.waitForEvent("serviceworker");
-
-  expect(context.serviceWorkers().length).toBe(2);
+  // Count existing workers too; waiting for two new events can miss startup.
+  await expect.poll(() => context.serviceWorkers().length).toBe(2);
 
   await context.close();
 });
@@ -276,7 +277,8 @@ test("background script logic", async ({ context }) => {
 
 ```typescript
 test("alarm triggers correctly", async ({ context }) => {
-  const serviceWorker = await context.waitForEvent("serviceworker");
+  const serviceWorker = context.serviceWorkers()[0] ||
+    (await context.waitForEvent("serviceworker"));
 
   // Create alarm
   await serviceWorker.evaluate(async () => {
@@ -370,7 +372,8 @@ test("content script modifies page", async ({ context }) => {
 
 ```typescript
 test("chrome.storage operations", async ({ context }) => {
-  const serviceWorker = await context.waitForEvent("serviceworker");
+  const serviceWorker = context.serviceWorkers()[0] ||
+    (await context.waitForEvent("serviceworker"));
 
   // Set storage
   await serviceWorker.evaluate(async () => {
@@ -401,7 +404,8 @@ test("chrome.storage operations", async ({ context }) => {
 
 ```typescript
 test("chrome.tabs operations", async ({ context }) => {
-  const serviceWorker = await context.waitForEvent("serviceworker");
+  const serviceWorker = context.serviceWorkers()[0] ||
+    (await context.waitForEvent("serviceworker"));
 
   // Create a tab
   const page = await context.newPage();
@@ -425,37 +429,24 @@ test("chrome.tabs operations", async ({ context }) => {
 ### Context Menus
 
 ```typescript
-test("context menu actions", async ({ context, extensionId }) => {
-  const serviceWorker = await context.waitForEvent("serviceworker");
+// Playwright cannot open Chrome's native context menu, and
+// chrome.contextMenus.onClicked has no dispatch(). Test the handler that the
+// extension registers with onClicked.addListener as a plain function.
+import { test, expect } from "@playwright/test";
+import { onContextMenuClick } from "../src/background/contextMenu";
 
-  // Create context menu
-  await serviceWorker.evaluate(async () => {
-    await chrome.contextMenus.create({
-      id: "test-menu",
-      title: "Test Action",
-      contexts: ["selection"],
-    });
-  });
+test("context menu action saves the selection", async () => {
+  const saved: Record<string, unknown>[] = [];
+  globalThis.chrome = {
+    storage: { local: { set: async (items: Record<string, unknown>) => { saved.push(items); } } },
+  } as unknown as typeof chrome;
 
-  // Simulate context menu click
-  const page = await context.newPage();
-  await page.goto("https://example.com");
+  await onContextMenuClick(
+    { menuItemId: "save-selection", selectionText: "selected text" } as chrome.contextMenus.OnClickData,
+    { id: 1, url: "https://example.com" } as chrome.tabs.Tab,
+  );
 
-  // Select text
-  await page.evaluate(() => {
-    const range = document.createRange();
-    range.selectNodeContents(document.body.firstChild!);
-    window.getSelection()?.addRange(range);
-  });
-
-  // Trigger context menu action programmatically
-  await serviceWorker.evaluate(async () => {
-    // Simulate the click handler
-    chrome.contextMenus.onClicked.dispatch(
-      { menuItemId: "test-menu", selectionText: "selected text" },
-      { id: 1, url: "https://example.com" },
-    );
-  });
+  expect(saved).toEqual([{ savedSelection: "selected text" }]);
 });
 ```
 
@@ -493,7 +484,7 @@ test("request permissions", async ({ context, extensionId }) => {
 
 | Anti-Pattern                   | Problem               | Solution                                 |
 | ------------------------------ | --------------------- | ---------------------------------------- |
-| Testing in headless mode       | Extensions don't load | Use `headless: false`                    |
+| Using the default headless shell | Extensions don't load | Use headed mode or `channel: "chromium"` for headless extensions |
 | Not waiting for service worker | Race conditions       | Wait for `serviceworker` event           |
 | Hardcoding extension ID        | ID changes on reload  | Extract ID from service worker URL       |
 | Testing packed extensions only | Slow iteration        | Test unpacked during development         |

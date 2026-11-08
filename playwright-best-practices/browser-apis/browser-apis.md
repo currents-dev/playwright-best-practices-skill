@@ -156,16 +156,16 @@ test("video call with permissions", async ({ context }) => {
 
   // All permissions should be granted
   const permissions = await page.evaluate(async () => ({
-    camera: await navigator.permissions.query({
+    camera: (await navigator.permissions.query({
       name: "camera" as PermissionName,
-    }),
-    microphone: await navigator.permissions.query({
+    })).state,
+    microphone: (await navigator.permissions.query({
       name: "microphone" as PermissionName,
-    }),
+    })).state,
   }));
 
-  expect(permissions.camera.state).toBe("granted");
-  expect(permissions.microphone.state).toBe("granted");
+  expect(permissions.camera).toBe("granted");
+  expect(permissions.microphone).toBe("granted");
 });
 ```
 

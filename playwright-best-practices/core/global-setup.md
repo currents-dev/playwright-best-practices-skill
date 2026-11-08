@@ -398,7 +398,7 @@ Use **worker-scoped fixtures** instead of globalSetup when:
 | Scenario                             | Why Fixtures Are Better                              |
 | ------------------------------------ | ---------------------------------------------------- |
 | Each worker needs isolated resources | Fixtures can create per-worker databases, servers    |
-| Setup needs Playwright APIs          | Fixtures have access to `page`, `request`, `browser` |
+| Setup needs Playwright APIs          | Worker fixtures can use `browser` and `playwright`; `page`, `context`, and `request` are test-scoped |
 | Setup depends on test configuration  | Fixtures receive test context and options            |
 | Resources need cleanup per worker    | Worker fixtures auto-cleanup when worker exits       |
 

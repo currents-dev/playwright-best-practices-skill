@@ -110,29 +110,13 @@ test("displays incoming chat message", async ({ page }) => {
 ### Mock WebSocket with Route Handler
 
 ```typescript
-test("mock websocket entirely", async ({ page, context }) => {
-  // Intercept the WebSocket upgrade
-  await context.route("**/ws/**", async (route) => {
-    // For WebSocket routes, we can't fulfill directly
-    // Instead, use page.evaluate to mock the client-side
-  });
-
-  // Alternative: Mock at application level
-  await page.addInitScript(() => {
-    const OriginalWebSocket = window.WebSocket;
-    (window as any).WebSocket = function (url: string) {
-      const ws = {
-        readyState: 1,
-        send: (data: string) => {
-          console.log("WS Send:", data);
-        },
-        close: () => {},
-        addEventListener: () => {},
-        removeEventListener: () => {},
-      };
-      setTimeout(() => ws.onopen?.(), 100);
-      return ws;
-    };
+test("mock websocket entirely", async ({ page }) => {
+  // Register before the app creates the socket. HTTP route() does not route
+  // WebSocket frames; routeWebSocket() is available since Playwright 1.48.
+  await page.routeWebSocket("**/ws/**", (ws) => {
+    ws.onMessage((message) => {
+      if (message === "ping") ws.send("pong");
+    });
   });
 
   await page.goto("/chat");
@@ -143,7 +127,7 @@ test("mock websocket entirely", async ({ page, context }) => {
 
 ```typescript
 // fixtures/websocket.fixture.ts
-import { test as base, Page } from "@playwright/test";
+import { test as base, type WebSocketRoute } from "@playwright/test";
 
 type WsMessage = { type: string; [key: string]: any };
 
@@ -158,34 +142,22 @@ export const test = base.extend<WebSocketFixtures>({
   mockWebSocket: async ({ page }, use) => {
     const sentMessages: WsMessage[] = [];
 
-    // Capture sent messages
-    await page.addInitScript(() => {
-      (window as any).__wsSent = [];
-      const OriginalWebSocket = window.WebSocket;
-      window.WebSocket = function (url: string) {
-        const ws = new OriginalWebSocket(url);
-        const originalSend = ws.send.bind(ws);
-        ws.send = (data: string) => {
-          (window as any).__wsSent.push(JSON.parse(data));
-          originalSend(data);
-        };
-        (window as any).__ws = ws;
-        return ws;
-      } as any;
+    // This example app opens one JSON chat socket per page.
+    let resolveSocket!: (socket: WebSocketRoute) => void;
+    const connected = new Promise<WebSocketRoute>((resolve) => {
+      resolveSocket = resolve;
+    });
+    await page.routeWebSocket("**/ws/**", (socket) => {
+      socket.onMessage((data) => sentMessages.push(JSON.parse(data.toString())));
+      resolveSocket(socket);
     });
 
     await use({
       injectMessage: async (message) => {
-        await page.evaluate((msg) => {
-          const event = new MessageEvent("message", {
-            data: JSON.stringify(msg),
-          });
-          (window as any).__ws?.dispatchEvent(event);
-        }, message);
+        const socket = await connected;
+        socket.send(JSON.stringify(message));
       },
-      getSentMessages: async () => {
-        return page.evaluate(() => (window as any).__wsSent || []);
-      },
+      getSentMessages: async () => sentMessages,
     });
   },
 });

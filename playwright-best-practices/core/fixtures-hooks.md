@@ -111,7 +111,7 @@ export default defineConfig({
 ### Automatic Fixtures
 
 ```typescript
-export const test = base.extend<{}, { setupDb: void }>({
+export const test = base.extend<{ setupDb: void }>({
   // Auto-fixture runs for every test without explicit usage
   setupDb: [
     async ({}, use) => {

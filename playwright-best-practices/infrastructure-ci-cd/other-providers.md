@@ -413,11 +413,20 @@ stages:
           - task: DownloadPipelineArtifact@2
             inputs:
               patterns: "blob-report-*/**"
-              path: all-blob-reports
+              path: downloaded-blob-reports
             displayName: "Download blob reports"
+
+          # Downloading multiple artifacts creates a subdirectory per artifact;
+          # merge-reports expects the ZIP files directly in its input directory.
+          - script: |
+              mkdir -p all-blob-reports
+              find downloaded-blob-reports -name '*.zip' -exec cp {} all-blob-reports/ \;
+            displayName: "Flatten blob reports"
 
           - script: npx playwright merge-reports --reporter=html ./all-blob-reports
             displayName: "Merge reports"
+            env:
+              PLAYWRIGHT_HTML_OUTPUT_DIR: pw-report
 
           - task: PublishPipelineArtifact@1
             inputs:
@@ -428,7 +437,7 @@ stages:
 
 ## JUnit Reporter Config
 
-All platforms benefit from JUnit output for native test result display:
+All platforms benefit from JUnit output for native test result display. The examples above use `pw-report/` for HTML artifacts and `results/junit.xml` for test results, so configure those paths explicitly. In sharded runs, also add `["blob"]` so `merge-reports` has input.
 
 ```typescript
 // playwright.config.ts
@@ -438,7 +447,7 @@ export default defineConfig({
   reporter: process.env.CI
     ? [
         ["dot"],
-        ["html", { open: "never" }],
+        ["html", { outputFolder: "pw-report", open: "never" }],
         ["junit", { outputFile: "results/junit.xml" }],
       ]
     : [["html", { open: "on-failure" }]],

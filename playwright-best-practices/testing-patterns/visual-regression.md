@@ -109,7 +109,7 @@ export default defineConfig({
 });
 ```
 
-When `animations: 'disabled'` is set, Playwright injects CSS forcing animation/transition duration to 0s, waits for running animations to finish, then captures.
+When `animations: 'disabled'` is set, finite animations are fast-forwarded to completion (firing `transitionend`), while infinite animations are canceled to their initial state and resumed after capture.
 
 For JavaScript-driven animations (GSAP, Framer Motion), wait for stability:
 
@@ -530,7 +530,7 @@ export default defineConfig({
 | Skip `animations: 'disabled'` | CSS transitions create random diffs | Set globally in config |
 | Replace functional assertions with visual tests | Diffs don't tell you *what* broke | Visual tests complement, never replace |
 | Commit snapshots from different platforms | Tests fail for everyone | All team members use same Docker container |
-| Set threshold too high (`0.1`) | 10% pixel change passes, defeats purpose | Start with `0.01`, adjust per-test |
+| Set `maxDiffPixelRatio` too high (`0.1`) | 10% pixel change passes, defeats purpose | Start with `0.01`, adjust per-test |
 | Full page on infinite scroll pages | Page height nondeterministic | Element screenshots on above-the-fold content |
 
 ## Troubleshooting

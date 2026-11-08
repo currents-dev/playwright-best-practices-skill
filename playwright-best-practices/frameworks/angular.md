@@ -49,7 +49,7 @@ export default defineConfig({
 
   webServer: {
     command: process.env.CI
-      ? 'npx ng build && npx http-server dist/my-app/browser -p 4200 -s'
+      ? 'npx ng build && npx serve -s dist/my-app/browser -l 4200'
       : 'npx ng serve',
     url: 'http://localhost:4200',
     reuseExistingServer: !process.env.CI,
@@ -493,11 +493,11 @@ test('no hydration errors', async ({ page }) => {
 | Scenario | Command | Notes |
 |---|---|---|
 | Local dev | `npx ng serve` | Fast rebuild, source maps |
-| CI production | `npx ng build && npx http-server dist/app/browser -p 4200 -s` | Tests production bundle |
+| CI production | `npx ng build && npx serve -s dist/app/browser -l 4200` | Tests production bundle with SPA fallback |
 | CI SSR | `npx ng build --ssr && node dist/app/server/server.mjs` | Tests server-side rendering |
 | Staging | No `webServer` | Point `baseURL` to staging URL |
 
-The `-s` flag on `http-server` enables SPA fallback for Angular Router.
+The `-s` flag on `serve` enables SPA fallback for Angular Router. In `http-server`, `-s` means silent logging, not SPA fallback.
 
 ## CDK Overlay Container
 
@@ -520,7 +520,7 @@ const listbox = page.getByRole('listbox');
 | `page.evaluate(() => window.ng)` | Not available in production builds | Test through the DOM |
 | `await page.waitForTimeout(500)` | Zone.js timing varies | Use auto-retrying assertions |
 | `browser.waitForAngular()` | Does not exist in Playwright | Remove entirely |
-| `ng serve` in CI | Slower, includes debug code | Use `ng build && http-server` |
+| `ng serve` in CI | Slower, includes debug code | Use `ng build` and serve the production bundle with SPA fallback |
 
 ## Related
 

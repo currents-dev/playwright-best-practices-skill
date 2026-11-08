@@ -15,7 +15,7 @@
 ## CLI Quick Reference
 
 ```bash
-npx playwright init                           # scaffold config + first test
+npm init playwright@latest                    # scaffold config + first test
 npx playwright test --config=custom.config.ts # use alternate config
 npx playwright test --project=chromium        # run single project
 npx playwright test --reporter=html           # override reporter
@@ -33,7 +33,7 @@ DEBUG=pw:api npx playwright test              # verbose logging
 |---------|---------|---------|-------------|
 | Test takes too long overall | `timeout` | 30s | 30-60s (max 120s) |
 | Assertion retries too long/short | `expect.timeout` | 5s | 5-10s |
-| `page.goto()` or `waitForURL()` times out | `navigationTimeout` | 30s | 10-30s |
+| `page.goto()` or `waitForURL()` times out | `navigationTimeout` | 0 (unlimited, bounded by test timeout) | 10-30s |
 | `click()`, `fill()` time out | `actionTimeout` | 0 (unlimited) | 10-15s |
 | Dev server slow to start | `webServer.timeout` | 60s | 60-180s |
 

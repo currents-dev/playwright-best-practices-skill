@@ -183,7 +183,7 @@ Playwright pierces shadow DOM by default:
 page.getByRole("button", { name: "Shadow Button" });
 
 // Explicit shadow DOM traversal (if needed)
-page.locator("my-component").locator("internal:shadow=button");
+page.locator("my-component").locator("button");
 ```
 
 ## Iframes

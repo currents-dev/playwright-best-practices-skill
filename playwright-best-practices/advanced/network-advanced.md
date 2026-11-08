@@ -398,8 +398,8 @@ Use `context.setOffline(true/false)` to simulate network connectivity changes.
 
 > **For comprehensive offline testing patterns:**
 >
-> - **Network failure simulation** (error recovery, graceful degradation): See [error-testing.md](error-testing.md#offline-testing)
-> - **Offline-first/PWA testing** (service workers, caching, background sync): See [service-workers.md](service-workers.md#offline-testing)
+> - **Network failure simulation** (error recovery, graceful degradation): See [error-testing.md](../debugging/error-testing.md#offline-testing)
+> - **Offline-first/PWA testing** (service workers, caching, background sync): See [service-workers.md](../browser-apis/service-workers.md#offline-testing)
 
 ### Network Throttling Fixture
 

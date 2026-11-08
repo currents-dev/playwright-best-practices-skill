@@ -421,4 +421,4 @@ use: {
 },
 ```
 
-The HTML report embeds screenshots from `test-results/`. Deleting that directory removes screenshots from the report.
+The HTML reporter copies screenshot attachments into `playwright-report/data/`. Preserve the entire `playwright-report/` directory when uploading or moving the report; `test-results/` is not required to view those copied attachments.

@@ -230,7 +230,7 @@ test("click event fires", async ({ mount }) => {
 
   await component.click();
 
-  expect(clicked).toBe(true);
+  await expect.poll(() => clicked).toBe(true);
 });
 ```
 
@@ -250,7 +250,7 @@ test("onChange provides correct value", async ({ mount }) => {
   await component.getByRole("combobox").click();
   await component.getByRole("option", { name: "b" }).click();
 
-  expect(values).toEqual(["b"]);
+  await expect.poll(() => values).toEqual(["b"]);
 });
 ```
 
@@ -272,7 +272,7 @@ test("form submission", async ({ mount }) => {
   await component.getByLabel("Password").fill("secret123");
   await component.getByRole("button", { name: "Sign in" }).click();
 
-  expect(submittedData).toEqual({
+  await expect.poll(() => submittedData).toEqual({
     email: "test@example.com",
     password: "secret123",
   });
@@ -338,14 +338,26 @@ test("renders named slots", async ({ mount }) => {
 ### Testing Render Props
 
 ```tsx
-test("render prop pattern", async ({ mount }) => {
-  const component = await mount(
+// DataFetcherStory.tsx — browser-side wrapper, next to the component.
+export function DataFetcherStory() {
+  return (
     <DataFetcher url="/api/users">
       {({ data, loading }) =>
         loading ? <span>Loading...</span> : <span>{data.name}</span>
       }
-    </DataFetcher>,
+    </DataFetcher>
   );
+}
+```
+
+```tsx
+// In the spec:
+import { DataFetcherStory } from "./DataFetcherStory";
+
+// Render props execute synchronously in the browser; a Node-side callback
+// passed directly through mount cannot return JSX to the browser.
+test("render prop pattern", async ({ mount }) => {
+  const component = await mount(<DataFetcherStory />);
 
   // Initially loading
   await expect(component.getByText("Loading...")).toBeVisible();
@@ -427,14 +439,12 @@ test("with mocked hook", async ({ mount }) => {
 ### React Testing
 
 ```tsx
-// React with refs
-test("exposes ref methods", async ({ mount }) => {
-  let inputRef: HTMLInputElement | null = null;
-
-  const component = await mount(<Input ref={(el) => (inputRef = el)} />);
-
+// DOM nodes cannot be passed from the browser to a Node-side ref callback.
+// Assert rendered input state through a locator instead.
+test("input value", async ({ mount }) => {
+  const component = await mount(<Input />);
   await component.locator("input").fill("test");
-  expect(inputRef?.value).toBe("test");
+  await expect(component.locator("input")).toHaveValue("test");
 });
 
 // React with context
@@ -466,7 +476,7 @@ test("v-model binding", async ({ mount }) => {
   });
 
   await component.locator("input").fill("test");
-  expect(modelValue).toBe("test");
+  await expect.poll(() => modelValue).toBe("test");
 });
 ```
 

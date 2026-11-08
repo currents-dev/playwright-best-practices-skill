@@ -407,8 +407,6 @@ type SeedFixtures = {
 };
 
 export const test = base.extend<SeedFixtures>({
-  cleanupUsers: [],
-
   seedUser: async ({ request, cleanupUsers }, use) => {
     await use(async (overrides = {}) => {
       const userData = createUser(overrides);
@@ -448,7 +446,7 @@ test("user profile page", async ({ page, seedUser }) => {
 
 ```typescript
 // fixtures/db.fixture.ts
-export const test = base.extend<{}, { db: DbTransaction }>({
+export const test = base.extend<{ db: DbTransaction }>({
   db: [
     async ({}, use) => {
       const client = await pool.connect();

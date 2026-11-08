@@ -13,7 +13,7 @@
 ### Use Built-in Devices
 
 ```typescript
-import { test, devices } from "@playwright/test";
+import { test, devices, defineConfig } from "@playwright/test";
 
 // Configure in playwright.config.ts
 export default defineConfig({
@@ -82,25 +82,44 @@ test("tap to interact", async ({ page }) => {
 
 ### Swipe
 
+`touchscreen.tap()` sends both touch start and touch end; a following mouse move does not continue a touch gesture. For apps that handle legacy touch events, dispatch the touch sequence explicitly. These synthetic events are untrusted and do not test native scrolling or apps that require trusted pointer input.
+
 ```typescript
-test("swipe carousel", async ({ page }) => {
-  await page.goto("/carousel");
+// fixtures/touch.ts
+import type { Locator } from "@playwright/test";
 
-  const carousel = page.getByTestId("carousel");
-  const box = await carousel.boundingBox();
-
-  if (box) {
-    // Swipe left
-    await page.touchscreen.tap(box.x + box.width - 50, box.y + box.height / 2);
-    await page.mouse.move(box.x + 50, box.y + box.height / 2);
-
-    // Or use drag
-    await carousel.dragTo(carousel, {
-      sourcePosition: { x: box.width - 50, y: box.height / 2 },
-      targetPosition: { x: 50, y: box.height / 2 },
+export async function pan(element: Locator, deltaX: number, deltaY: number) {
+  const { x, y } = await element.evaluate((target) => {
+    const box = target.getBoundingClientRect();
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  });
+  const touches = [{ identifier: 0, clientX: x, clientY: y }];
+  await element.dispatchEvent("touchstart", {
+    touches, changedTouches: touches, targetTouches: touches,
+  });
+  for (let i = 1; i <= 10; i++) {
+    const touches = [{
+      identifier: 0,
+      clientX: x + deltaX * i / 10,
+      clientY: y + deltaY * i / 10,
+    }];
+    await element.dispatchEvent("touchmove", {
+      touches, changedTouches: touches, targetTouches: touches,
     });
   }
+  await element.dispatchEvent("touchend", {
+    touches: [], targetTouches: [],
+    changedTouches: [{ identifier: 0, clientX: x + deltaX, clientY: y + deltaY }],
+  });
+}
+```
 
+```typescript
+import { pan } from "./fixtures/touch";
+
+test("swipe carousel", async ({ page }) => {
+  await page.goto("/carousel");
+  await pan(page.getByTestId("carousel"), -100, 0);
   await expect(page.getByText("Slide 2")).toBeVisible();
 });
 ```
@@ -109,7 +128,8 @@ test("swipe carousel", async ({ page }) => {
 
 ```typescript
 // fixtures/touch.fixture.ts
-import { test as base, Page } from "@playwright/test";
+import { test as base, type Locator } from "@playwright/test";
+import { pan } from "./touch";
 
 type TouchFixtures = {
   swipe: (
@@ -119,44 +139,14 @@ type TouchFixtures = {
 };
 
 export const test = base.extend<TouchFixtures>({
-  swipe: async ({ page }, use) => {
+  swipe: async ({}, use) => {
     await use(async (element, direction) => {
-      const box = await element.boundingBox();
-      if (!box) throw new Error("Element not visible");
-
-      const centerX = box.x + box.width / 2;
-      const centerY = box.y + box.height / 2;
-      const distance = 100;
-
-      const moves = {
-        left: {
-          startX: centerX + distance,
-          endX: centerX - distance,
-          y: centerY,
-        },
-        right: {
-          startX: centerX - distance,
-          endX: centerX + distance,
-          y: centerY,
-        },
-        up: {
-          startX: centerX,
-          endX: centerX,
-          startY: centerY + distance,
-          endY: centerY - distance,
-        },
-        down: {
-          startX: centerX,
-          endX: centerX,
-          startY: centerY - distance,
-          endY: centerY + distance,
-        },
-      };
-
-      const move = moves[direction];
-      await page.touchscreen.tap(move.startX, move.startY ?? move.y);
-      await page.mouse.move(move.endX, move.endY ?? move.y, { steps: 10 });
-      await page.mouse.up();
+      const deltas = {
+        left: [-100, 0], right: [100, 0],
+        up: [0, -100], down: [0, 100],
+      } as const;
+      const [deltaX, deltaY] = deltas[direction];
+      await pan(element, deltaX, deltaY);
     });
   },
 });
@@ -164,10 +154,7 @@ export const test = base.extend<TouchFixtures>({
 // Usage
 test("swipe to delete", async ({ page, swipe }) => {
   await page.goto("/inbox");
-
-  const message = page.getByTestId("message-1");
-  await swipe(message, "left");
-
+  await swipe(page.getByTestId("message-1"), "left");
   await expect(page.getByRole("button", { name: "Delete" })).toBeVisible();
 });
 ```
@@ -179,18 +166,20 @@ test("long press for context menu", async ({ page }) => {
   await page.goto("/files");
 
   const file = page.getByText("document.pdf");
-  const box = await file.boundingBox();
+  const { x, y } = await file.evaluate((target) => {
+    const box = target.getBoundingClientRect();
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  });
+  const touches = [{ identifier: 0, clientX: x, clientY: y }];
+  await file.dispatchEvent("touchstart", {
+    touches, changedTouches: touches, targetTouches: touches,
+  });
 
-  if (box) {
-    // Touch down
-    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
-
-    // Hold for 500ms
-    await page.waitForTimeout(500);
-
-    // Context menu should appear
-    await expect(page.getByRole("menu")).toBeVisible();
-  }
+  // The app opens its menu while the touch remains down.
+  await expect(page.getByRole("menu")).toBeVisible();
+  await file.dispatchEvent("touchend", {
+    touches: [], targetTouches: [], changedTouches: touches,
+  });
 });
 ```
 
@@ -323,13 +312,9 @@ test("pull to refresh", async ({ page }) => {
   const feed = page.getByTestId("feed");
   const initialFirstItem = await feed.locator("> *").first().textContent();
 
-  // Simulate pull down
-  const box = await feed.boundingBox();
-  if (box) {
-    await page.touchscreen.tap(box.x + box.width / 2, box.y + 50);
-    await page.mouse.move(box.x + box.width / 2, box.y + 200, { steps: 20 });
-    await page.mouse.up();
-  }
+  // Use the pan helper above for an app-level touch-event refresh handler.
+  // This does not simulate the browser's native pull-to-refresh behavior.
+  await pan(feed, 0, 150);
 
   // Wait for refresh
   await expect(page.getByTestId("loading")).toBeVisible();
